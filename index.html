@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>QuizPortal — Student</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://script.google.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ PRELOADER ============ -->
+<div id="preloader" role="status" aria-label="Loading QuizPortal">
+  <div class="preloader-inner">
+    <div class="preloader-logo">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div class="preloader-title">Quiz<span>Portal</span></div>
+    <div class="preloader-bar"></div>
+    <div class="preloader-text">Preparing your workspace…</div>
+  </div>
+</div>
+
+<!-- ============ AUTH (logged out) ============ -->
+<div id="authView" class="auth-wrap hidden">
+  <section class="auth-hero">
+    <div class="brand-row">
+      <div class="brand-logo"><svg class="ic"><use href="#i-logo"/></svg></div>
+      <div class="brand-name">QuizPortal<small>STUDENT PORTAL</small></div>
+    </div>
+    <div>
+      <h1>Learn, practice and test yourself — all in one place.</h1>
+      <p>Register once with your name and class, then attempt quizzes published by your teacher and track your results.</p>
+      <div class="hero-features">
+        <div class="hero-feature"><div class="hf-ic"><svg class="ic"><use href="#i-zap"/></svg></div><div><strong>Fast &amp; smooth</strong><span>Answers are saved instantly on your device.</span></div></div>
+        <div class="hero-feature"><div class="hf-ic"><svg class="ic"><use href="#i-shield"/></svg></div><div><strong>Never lose progress</strong><span>Refreshed the page? Pick up right where you left off.</span></div></div>
+        <div class="hero-feature"><div class="hf-ic"><svg class="ic"><use href="#i-trophy"/></svg></div><div><strong>Instant results</strong><span>See your score and review every answer.</span></div></div>
+      </div>
+    </div>
+    <div class="hero-foot muted" style="font-size:.8rem;color:#818cf8">© QuizPortal</div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <h2 id="authTitle">Create your account</h2>
+      <p class="lead" id="authLead">Register to start attempting quizzes.</p>
+
+      <div class="segmented mb-2" role="tablist" aria-label="Authentication mode">
+        <button type="button" role="tab" class="active" data-auth="register" aria-selected="true">Register</button>
+        <button type="button" role="tab" data-auth="login" aria-selected="false">Already registered</button>
+      </div>
+
+      <form id="registerForm" class="mt-2" novalidate>
+        <div class="form-group">
+          <label for="regName">Full name <span class="muted">(must be unique)</span></label>
+          <div class="input-icon"><svg class="ic"><use href="#i-user"/></svg><input type="text" id="regName" autocomplete="name" placeholder="e.g. Ali Khan" required /></div>
+        </div>
+        <div class="form-group">
+          <label for="regClass">Class</label>
+          <div class="input-icon"><svg class="ic"><use href="#i-book"/></svg><input type="text" id="regClass" placeholder="e.g. Class 9th" required /></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Create account <svg class="ic"><use href="#i-right"/></svg></button>
+      </form>
+
+      <form id="loginForm" class="mt-2 hidden" novalidate>
+        <div class="form-group">
+          <label for="loginName">Your registered name</label>
+          <div class="input-icon"><svg class="ic"><use href="#i-user"/></svg><input type="text" id="loginName" autocomplete="name" placeholder="e.g. Ali Khan" required /></div>
+          <p class="hint">Enter the exact name you registered with.</p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Sign in <svg class="ic"><use href="#i-right"/></svg></button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<!-- ============ APP (logged in) ============ -->
+<div id="appView" class="app hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo"><svg class="ic"><use href="#i-logo"/></svg></div>
+      <div class="brand-name">QuizPortal<small>STUDENT PORTAL</small></div>
+      <button type="button" class="sidebar-close" aria-label="Close menu"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <nav class="sidebar-nav" aria-label="Main">
+      <div class="nav-label">Menu</div>
+      <button type="button" class="nav-item active" data-page="upcomingPage"><svg class="ic"><use href="#i-book"/></svg> Available Quizzes</button>
+      <button type="button" class="nav-item hidden" id="resumeNav" data-page="quizEnginePage"><svg class="ic"><use href="#i-play"/></svg> Resume Quiz <span class="nav-badge" id="navTimer">--:--</span></button>
+      <button type="button" class="nav-item" data-page="myQuizzesPage"><svg class="ic"><use href="#i-history"/></svg> My Results</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar" id="userAvatar">?</div>
+        <div><div class="u-name" id="userName">Student</div><div class="u-sub" id="userClass">Class</div></div>
+      </div>
+      <button type="button" class="nav-item danger" id="logoutBtn"><svg class="ic"><use href="#i-logout"/></svg> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
+      <div style="min-width:0">
+        <div class="page-title" id="pageTitle">Available Quizzes</div>
+        <div class="page-sub" id="pageSub">Pick an active quiz to begin</div>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" class="btn btn-outline btn-sm" id="refreshBtn" title="Refresh"><svg class="ic ic-sm"><use href="#i-refresh"/></svg><span class="hide-sm">Refresh</span></button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div id="pendingBanner" class="banner banner-warning hidden">
+        <svg class="ic"><use href="#i-warning"/></svg>
+        <span id="pendingText">Your answers are saved on this device but have not been submitted yet.</span>
+        <button type="button" class="btn btn-sm btn-danger" id="retrySubmitBtn"><svg class="ic ic-sm"><use href="#i-send"/></svg> Submit now</button>
+      </div>
+      <div id="resumeBanner" class="banner banner-info hidden">
+        <svg class="ic"><use href="#i-clock"/></svg>
+        <span id="resumeText">You have a quiz in progress.</span>
+        <button type="button" class="btn btn-sm btn-primary" data-goto="quizEnginePage"><svg class="ic ic-sm"><use href="#i-play"/></svg> Resume</button>
+      </div>
+
+      <!-- ===== Available quizzes ===== -->
+      <section id="upcomingPage" class="page">
+        <div class="welcome-banner">
+          <div>
+            <h2 id="welcomeText">Welcome back!</h2>
+            <p>Choose an active quiz below. Your answers are saved automatically until you submit.</p>
+          </div>
+          <div class="btn-row">
+            <span class="badge badge-plain" style="background:rgba(255,255,255,.18);color:#fff"><span id="statActive">0</span>&nbsp;active</span>
+            <span class="badge badge-plain" style="background:rgba(255,255,255,.18);color:#fff"><span id="statScheduled">0</span>&nbsp;upcoming</span>
+          </div>
+        </div>
+        <div id="upcomingList" class="grid grid-auto"></div>
+      </section>
+
+      <!-- ===== Quiz engine ===== -->
+      <section id="quizEnginePage" class="page hidden">
+        <div class="quiz-header">
+          <div style="min-width:0">
+            <h2 id="engineQuizName">Quiz</h2>
+            <div class="saved-note" id="savedNote"><svg class="ic ic-sm"><use href="#i-check"/></svg> All answers saved on this device</div>
+          </div>
+          <div class="timer-pill" id="timerPill" role="timer" aria-label="Time remaining"><svg class="ic"><use href="#i-clock"/></svg><span id="qTimer">00:00</span></div>
+        </div>
+
+        <div class="quiz-layout">
+          <div class="card question-card mb-0">
+            <div class="progress" aria-hidden="true"><span id="progressBar" style="width:0%"></span></div>
+            <div class="progress-meta"><span id="progressText">0 answered</span><span id="progressPct">0%</span></div>
+
+            <div class="q-number mt-3">
+              <span id="qNumber">Question 1 of 1</span>
+              <button type="button" class="btn btn-outline btn-sm btn-flag" id="flagBtn" aria-pressed="false"><svg class="ic ic-sm"><use href="#i-flag"/></svg> Mark for review</button>
+            </div>
+            <h3 class="q-text" id="qText"></h3>
+            <div class="options" id="qOptions" role="group" aria-labelledby="qText"></div>
+
+            <div class="quiz-nav">
+              <button type="button" class="btn btn-outline" id="prevBtn"><svg class="ic"><use href="#i-left"/></svg> Previous</button>
+              <button type="button" class="btn btn-ghost" id="clearBtn"><svg class="ic ic-sm"><use href="#i-x"/></svg> Clear</button>
+              <span class="spacer"></span>
+              <button type="button" class="btn btn-primary" id="nextBtn">Save &amp; Next <svg class="ic"><use href="#i-right"/></svg></button>
+              <button type="button" class="btn btn-success hidden" id="finishBtn"><svg class="ic"><use href="#i-send"/></svg> Finish &amp; Submit</button>
+            </div>
+            <p class="kbd-hint">Tip: press <kbd>A</kbd>–<kbd>D</kbd> to choose, <kbd>←</kbd> <kbd>→</kbd> to move between questions.</p>
+          </div>
+
+          <aside class="card palette-card mb-0">
+            <div class="card-head" style="margin-bottom:.75rem">
+              <div class="card-title" style="font-size:.95rem"><svg class="ic"><use href="#i-dashboard"/></svg> Questions</div>
+              <span class="badge badge-info badge-plain" id="paletteCount">0/0</span>
+            </div>
+            <div class="palette" id="palette"></div>
+            <div class="legend">
+              <span><i class="l-answered"></i> Answered</span>
+              <span><i></i> Not answered</span>
+              <span><i class="l-flagged"></i> Review</span>
+            </div>
+            <button type="button" class="btn btn-success btn-block" id="submitQuizBtn"><svg class="ic"><use href="#i-send"/></svg> Submit Quiz</button>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ===== Result ===== -->
+      <section id="resultPage" class="page hidden">
+        <div class="card">
+          <div class="result-hero">
+            <div class="score-ring" id="scoreRing"><div><b id="resPct">0%</b><span>Score</span></div></div>
+            <div>
+              <span class="badge badge-info badge-plain" id="resQuizName">Quiz</span>
+              <h2 id="resHeadline" style="margin:.5rem 0 .25rem;font-size:1.5rem;letter-spacing:-.02em">Quiz completed!</h2>
+              <p class="muted" id="resDate"></p>
+              <div class="result-stats">
+                <div><span>Marks</span><b id="resMarks">0 / 0</b></div>
+                <div><span>Correct</span><b class="text-success" id="resCorrect">0</b></div>
+                <div><span>Wrong</span><b class="text-danger" id="resWrong">0</b></div>
+                <div><span>Skipped</span><b class="text-warning" id="resSkipped">0</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="btn-row mt-3">
+            <button type="button" class="btn btn-primary" data-goto="upcomingPage"><svg class="ic"><use href="#i-book"/></svg> Back to quizzes</button>
+            <button type="button" class="btn btn-outline" data-goto="myQuizzesPage"><svg class="ic"><use href="#i-history"/></svg> All my results</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title"><svg class="ic"><use href="#i-list"/></svg> Answer review</div><div class="card-sub">See what you answered for each question.</div></div>
+            <div class="segmented inline" id="resultFilter" role="tablist" aria-label="Filter answers">
+              <button type="button" class="active" data-filter="all">All</button>
+              <button type="button" data-filter="Correct">Correct</button>
+              <button type="button" data-filter="Wrong">Wrong</button>
+              <button type="button" data-filter="Not Solved">Skipped</button>
+            </div>
+          </div>
+          <div class="answer-list" id="answerList"></div>
+        </div>
+      </section>
+
+      <!-- ===== My results ===== -->
+      <section id="myQuizzesPage" class="page hidden">
+        <div class="grid grid-3 mb-2" style="margin-bottom:1.5rem">
+          <div class="stat-card"><div class="stat-ic indigo"><svg class="ic"><use href="#i-list"/></svg></div><div><div class="stat-label">Quizzes taken</div><div class="stat-value" id="histCount">0</div></div></div>
+          <div class="stat-card"><div class="stat-ic green"><svg class="ic"><use href="#i-trophy"/></svg></div><div><div class="stat-label">Best score</div><div class="stat-value" id="histBest">0%</div></div></div>
+          <div class="stat-card"><div class="stat-ic amber"><svg class="ic"><use href="#i-zap"/></svg></div><div><div class="stat-label">Average</div><div class="stat-value" id="histAvg">0%</div></div></div>
+        </div>
+        <div class="card card-flush">
+          <div class="card-head">
+            <div><div class="card-title" id="histTitle"><svg class="ic"><use href="#i-history"/></svg> My attempted quizzes</div><div class="card-sub">Click “View” to review your answers.</div></div>
+          </div>
+          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="histTitle">
+            <table class="stack">
+              <thead><tr><th>Quiz</th><th>Date</th><th class="num">Attempted</th><th class="num">Skipped</th><th class="num">Marks</th><th class="num">Score</th><th></th></tr></thead>
+              <tbody id="myQuizzesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script>
+const { icon, esc } = QP;
+const $ = id => document.getElementById(id);
+
+let currentStudent = JSON.parse(localStorage.getItem("quiz_student") || "null");
+let session = null;          // the active quiz attempt (persisted in localStorage)
+let submitting = false;
+let quizzes = [];
+let listSignature = "";
+let lastResult = null;
+let resultFilter = "all";
+
+const PAGES = {
+  upcomingPage: ["Available Quizzes", "Pick an active quiz to begin"],
+  quizEnginePage: ["Quiz in progress", "Answers are saved on your device — submit when you are done"],
+  resultPage: ["Quiz Result", "Review your performance"],
+  myQuizzesPage: ["My Results", "History of all quizzes you have attempted"]
+};
+
+/* ================= Navigation ================= */
+function showPage(id) {
+  if (id === "quizEnginePage" && !(session && session.status === "in_progress")) id = "upcomingPage";
+  Object.keys(PAGES).forEach(p => $(p).classList.toggle("hidden", p !== id));
+  $("pageTitle").textContent = PAGES[id][0];
+  $("pageSub").textContent = PAGES[id][1];
+  document.querySelectorAll(".sidebar .nav-item[data-page]").forEach(b => {
+    const on = b.dataset.page === id;
+    b.classList.toggle("active", on);
+    on ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current");
+  });
+  $("refreshBtn").classList.toggle("hidden", id === "quizEnginePage" || id === "resultPage");
+  if (id === "myQuizzesPage") loadMyQuizzes();
+  if (id === "quizEnginePage") renderEngine();
+  updateBanners();
+  window.scrollTo({ top: 0 });
+}
+
+document.addEventListener("click", e => {
+  const nav = e.target.closest("[data-page], [data-goto]");
+  if (nav) showPage(nav.dataset.page || nav.dataset.goto);
+});
+
+/* ================= Auth ================= */
+function setAuthMode(mode) {
+  document.querySelectorAll("[data-auth]").forEach(b => {
+    const on = b.dataset.auth === mode;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on);
+  });
+  $("registerForm").classList.toggle("hidden", mode !== "register");
+  $("loginForm").classList.toggle("hidden", mode !== "login");
+  $("authTitle").textContent = mode === "register" ? "Create your account" : "Welcome back";
+  $("authLead").textContent = mode === "register" ? "Register to start attempting quizzes." : "Sign in with the name you registered with.";
+  if (mode === "login" && $("regName").value && !$("loginName").value) $("loginName").value = $("regName").value;
+}
+document.querySelectorAll("[data-auth]").forEach(b => b.addEventListener("click", () => setAuthMode(b.dataset.auth)));
+
+$("registerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const studentName = $("regName").value.trim();
+  const studentClass = $("regClass").value.trim();
+  if (!studentName || !studentClass) return QP.toast("Please enter both your name and class.", "error");
+  await QP.withLoading(e.submitter, async () => {
+    const data = await QP.post({ action: "register_student", studentName, studentClass });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    signIn(data.student);
+    QP.toast("Registered successfully. Welcome!", "success");
+  });
+});
+
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const studentName = $("loginName").value.trim();
+  if (!studentName) return QP.toast("Enter your registered name to sign in.", "error");
+  await QP.withLoading(e.submitter, async () => {
+    const data = await QP.post({ action: "login_student", studentName });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    signIn(data.student);
+  });
+});
+
+function signIn(student) {
+  currentStudent = student;
+  localStorage.setItem("quiz_student", JSON.stringify(student));
+  initStudentSession();
+}
+
+$("logoutBtn").addEventListener("click", async () => {
+  const msg = session ? `Your unsubmitted answers for "${session.quizName}" will stay saved on this device.` : "You can sign in again anytime with your name.";
+  const ok = await QP.confirmDialog({ title: "Log out?", message: msg, confirmText: "Log out", tone: "danger", iconName: "logout" });
+  if (!ok) return;
+  localStorage.removeItem("quiz_student");
+  currentStudent = null;
+  session = null;
+  QP.clearCache();
+  showAuth();
+});
+
+function showAuth() {
+  $("appView").classList.add("hidden");
+  $("authView").classList.remove("hidden");
+  QP.hidePreloader();
+}
+
+function initStudentSession() {
+  $("authView").classList.add("hidden");
+  $("appView").classList.remove("hidden");
+  $("userName").textContent = currentStudent.studentName;
+  $("userClass").textContent = currentStudent.studentClass;
+  $("userAvatar").textContent = QP.initials(currentStudent.studentName);
+  $("welcomeText").textContent = `Welcome, ${currentStudent.studentName.split(" ")[0]}! 👋`;
+
+  session = loadSession();
+  if (session && session.status === "in_progress" && session.deadline > QP.now()) {
+    showPage("quizEnginePage");      // resume automatically after a refresh
+    QP.hidePreloader();
+    QP.toast("Welcome back! Your quiz has been restored.", "info");
+  } else {
+    showPage("upcomingPage");
+  }
+  loadQuizzes();
+  if (session && (session.status === "pending_submit" || session.deadline <= QP.now())) {
+    setTimeout(() => submitSession(true), 600);   // finish any submission that didn't go through
+  }
+}
+
+/* ================= Local session storage ================= */
+const sessionKey = () => "qp_session:" + currentStudent.studentName.trim().toLowerCase();
+const doneKey = () => "qp_done:" + currentStudent.studentName.trim().toLowerCase();
+
+function loadSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(sessionKey()) || "null");
+    if (!s || !Array.isArray(s.questions)) return null;
+    // Upgrade legacy object-based answers to array format transparently
+    if (!Array.isArray(s.answers)) {
+      const old = s.answers || {};
+      s.answers = s.questions.map((q, i) => ({ question: q.question, selected: old[i] ?? null, correct: q.correct }));
+    }
+    return s;
+  } catch (e) { return null; }
+}
+function saveSession() {
+  if (!session) return;
+  try { localStorage.setItem(sessionKey(), JSON.stringify(session)); }
+  catch (e) { QP.toast("Could not save progress on this device (storage full).", "warning"); }
+}
+function clearSession() {
+  localStorage.removeItem(sessionKey());
+  session = null;
+}
+function doneList() {
+  try { return JSON.parse(localStorage.getItem(doneKey()) || "[]"); } catch (e) { return []; }
+}
+function markDone(name) {
+  const l = doneList();
+  if (!l.includes(name)) { l.push(name); localStorage.setItem(doneKey(), JSON.stringify(l)); }
+}
+
+/* ================= Quiz list ================= */
+function liveStatus(q) {
+  const t = QP.now();
+  if (q.status === "Expired") return "Expired";
+  if (q.forceActive) return "Active";
+  if (q.expiresAt && t > new Date(q.expiresAt).getTime()) return "Expired";
+  if (q.startsAt && t < new Date(q.startsAt).getTime()) return "Scheduled";
+  return "Active";
+}
+
+function loadQuizzes(btn) {
+  const list = $("upcomingList");
+  if (!quizzes.length) list.innerHTML = Array.from({ length: 3 }, () => `<div class="skeleton sk-card"></div>`).join("");
+  const run = QP.cachedGet({ action: "list_quizzes" }, (data, meta) => {
+    if (data.status !== "success") {
+      list.innerHTML = `<div class="empty-card">${QP.emptyState("Couldn't load quizzes", data.message || "Please try again.", "error")}</div>`;
+      QP.hidePreloader();
+      return;
+    }
+    quizzes = data.quizzes || [];
+    renderQuizList();
+    QP.hidePreloader();
+  });
+  if (btn) QP.withLoading(btn, () => run);
+  return run;
+}
+
+function quizDurationMs(q) {
+  let ms = Number(q.totalTimeMinutes) * 60000;
+  if (!q.forceActive && q.expiresAt) ms = Math.min(ms, new Date(q.expiresAt).getTime() - QP.now());
+  return ms;
+}
+
+function renderQuizList() {
+  const list = $("upcomingList");
+  const items = quizzes.map(q => ({ ...q, live: liveStatus(q) })).filter(q => q.live !== "Expired");
+  items.sort((a, b) => (a.live === b.live ? String(a.startsAt).localeCompare(String(b.startsAt)) : a.live === "Active" ? -1 : 1));
+  listSignature = items.map(q => q.quizName + q.live).join("|");
+  $("statActive").textContent = items.filter(q => q.live === "Active").length;
+  $("statScheduled").textContent = items.filter(q => q.live === "Scheduled").length;
+
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-card">${QP.emptyState("No quizzes available right now", "When your teacher publishes a quiz it will appear here.", "book")}</div>`;
+    return;
+  }
+  const done = doneList();
+  list.innerHTML = items.map(q => {
+    const sched = q.live === "Scheduled";
+    const inProgress = session && session.quizName === q.quizName && session.status === "in_progress";
+    let windowInfo;
+    if (sched) windowInfo = `${icon("calendar", "ic-sm")} Starts in&nbsp;<b data-cd="${new Date(q.startsAt).getTime()}"></b>`;
+    else if (q.expiresAt && !q.forceActive) windowInfo = `${icon("hourglass", "ic-sm")} Closes in&nbsp;<b data-cd="${new Date(q.expiresAt).getTime()}"></b>`;
+    else windowInfo = `${icon("clock", "ic-sm")} Open now`;
+    const btn = sched
+      ? `<button type="button" class="btn btn-outline btn-block" disabled>${icon("lock", "ic-sm")} Opens ${esc(QP.fmtDateTime(q.startsAt))}</button>`
+      : inProgress
+        ? `<button type="button" class="btn btn-success btn-block" data-goto="quizEnginePage">${icon("play", "ic-sm")} Resume Quiz</button>`
+        : `<button type="button" class="btn btn-primary btn-block" data-start="${esc(q.quizName)}">${icon("play", "ic-sm")} Start Quiz</button>`;
+    return `
+      <article class="quiz-card">
+        <div class="quiz-card-top">
+          <h3>${esc(q.quizName)}</h3>
+          ${QP.statusBadge(q.live === "Scheduled" ? "Scheduled" : "Active")}
+        </div>
+        <div class="quiz-meta">
+          <div><b>${q.totalQuestions}</b><span>MCQs</span></div>
+          <div><b>${q.totalTimeMinutes}</b><span>Minutes</span></div>
+          <div><b>${q.totalMarks}</b><span>Marks</span></div>
+        </div>
+        <div class="quiz-window">${windowInfo}</div>
+        ${done.includes(q.quizName) ? `<div class="quiz-window text-success">${icon("success", "ic-sm")} You have attempted this quiz</div>` : ""}
+        ${btn}
+      </article>`;
+  }).join("");
+  tickCountdowns();
+}
+
+$("upcomingList").addEventListener("click", e => {
+  const b = e.target.closest("[data-start]");
+  if (b) startQuiz(b.dataset.start, b);
+});
+$("refreshBtn").addEventListener("click", e => {
+  QP.clearCache();
+  if (!$("myQuizzesPage").classList.contains("hidden")) loadMyQuizzes(e.currentTarget);
+  else loadQuizzes(e.currentTarget);
+});
+
+/* ================= Start / resume quiz ================= */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+async function startQuiz(quizName, btn) {
+  if (session) {
+    if (session.quizName === quizName && session.status === "in_progress") return showPage("quizEnginePage");
+    if (session.status === "pending_submit" || session.deadline <= QP.now()) {
+      QP.toast(`Please submit "${session.quizName}" first.`, "warning");
+      return updateBanners();
+    }
+    const resume = await QP.confirmDialog({
+      title: "Finish your current quiz first",
+      message: `"${session.quizName}" is still in progress. Submit it before starting another quiz.`,
+      confirmText: "Resume quiz", iconName: "warning", tone: "warning"
+    });
+    if (resume) showPage("quizEnginePage");
+    return;
+  }
+
+  const meta = quizzes.find(q => q.quizName === quizName) || {};
+  const ms = quizDurationMs(meta);
+  const minutes = Math.max(1, Math.floor(ms / 60000));
+  const limited = ms < Number(meta.totalTimeMinutes) * 60000;
+  const ok = await QP.confirmDialog({
+    title: `Start “${quizName}”?`,
+    iconName: "play",
+    confirmText: "Start now",
+    html: `
+      <div class="details-grid">
+        <div class="detail-box"><span>Questions</span><b>${meta.totalQuestions ?? "—"}</b></div>
+        <div class="detail-box"><span>Time</span><b>${limited ? QP.fmtDuration(ms) : minutes + " min"}</b></div>
+        <div class="detail-box"><span>Total marks</span><b>${meta.totalMarks ?? "—"}</b></div>
+      </div>
+      ${limited ? `<div class="banner banner-warning" style="margin-bottom:.75rem">${icon("warning", "ic-sm")} The quiz window closes soon, so you only get ${esc(QP.fmtDuration(ms))}.</div>` : ""}
+      <ul class="muted" style="padding-left:1.1rem;font-size:.88rem;display:grid;gap:.3rem">
+        <li>The timer starts as soon as you click <b>Start now</b>.</li>
+        <li>You can move between questions and change answers anytime.</li>
+        <li>Answers are saved on your device — nothing is lost if the page refreshes.</li>
+        <li>Your quiz is submitted automatically when the time runs out.</li>
+      </ul>`
+  });
+  if (!ok) return;
+
+  await QP.withLoading(btn, async () => {
+    const data = await QP.get({ action: "get_quiz", quizName });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    const quiz = data.quiz;
+    const durationMs = quizDurationMs(quiz);
+    if (durationMs < 5000) return QP.toast("This quiz window has already closed.", "error");
+    const shuffled = shuffle(quiz.questions).map(q => ({ question: q.question, options: q.options, correct: q.correct }));
+    session = {
+      id: QP.uid(),
+      quizName: quiz.quizName,
+      marksPerMcq: quiz.marksPerMcq || 1,
+      questions: shuffled,
+      // All MCQ answers collected as an array in localStorage until final Submit
+      answers: shuffled.map(q => ({ question: q.question, selected: null, correct: q.correct })),
+      flagged: {},
+      current: 0,
+      startedAt: new Date(QP.now()).toISOString(),
+      deadline: QP.now() + durationMs,
+      status: "in_progress"
+    };
+    saveSession();
+    paletteBuiltFor = null;
+    showPage("quizEnginePage");
+  });
+}
+
+/* ================= Quiz engine ================= */
+let paletteBuiltFor = null;
+let savedTimer = null;
+
+function renderEngine() {
+  if (!session) return;
+  $("engineQuizName").textContent = session.quizName;
+  if (paletteBuiltFor !== session.id) {
+    $("palette").innerHTML = session.questions.map((_, i) => `<button type="button" data-q="${i}" aria-label="Question ${i + 1}">${i + 1}</button>`).join("");
+    paletteBuiltFor = session.id;
+  }
+  renderQuestion();
+  tick();
+}
+
+function getSelected(i) {
+  const entry = session.answers[i];
+  return entry && entry.selected !== null && entry.selected !== undefined ? entry.selected : null;
+}
+
+function answeredCount() {
+  return session.answers.filter(a => a && a.selected !== null && a.selected !== undefined).length;
+}
+
+function renderQuestion() {
+  const i = session.current, q = session.questions[i], n = session.questions.length;
+  const chosen = getSelected(i);
+  $("qNumber").textContent = `Question ${i + 1} of ${n}`;
+  $("qText").textContent = q.question;
+  $("qOptions").innerHTML = q.options.map((opt, k) => `
+    <button type="button" class="option-btn ${chosen === opt ? "selected" : ""}" data-opt="${k}" aria-pressed="${chosen === opt}">
+      <span class="opt-key">${String.fromCharCode(65 + k)}</span>
+      <span class="opt-text">${esc(opt)}</span>
+      ${icon("success", "opt-check")}
+    </button>`).join("");
+  $("prevBtn").disabled = i === 0;
+  $("nextBtn").classList.toggle("hidden", i === n - 1);
+  $("finishBtn").classList.toggle("hidden", i !== n - 1);
+  $("clearBtn").disabled = chosen === null;
+  $("flagBtn").classList.toggle("active", !!session.flagged[i]);
+  $("flagBtn").setAttribute("aria-pressed", !!session.flagged[i]);
+  updateProgress();
+}
+
+function updateProgress() {
+  const n = session.questions.length, a = answeredCount();
+  const pct = Math.round((a / n) * 100);
+  $("progressBar").style.width = pct + "%";
+  $("progressText").textContent = `${a} of ${n} answered`;
+  $("progressPct").textContent = pct + "%";
+  $("paletteCount").textContent = `${a}/${n}`;
+  const buttons = $("palette").children;
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].classList.toggle("answered", getSelected(i) !== null);
+    buttons[i].classList.toggle("flagged", !!session.flagged[i]);
+    buttons[i].classList.toggle("current", i === session.current);
+  }
+}
+
+function flashSaved() {
+  const el = $("savedNote");
+  el.innerHTML = `${icon("check", "ic-sm")} Answer saved locally`;
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => { el.innerHTML = `${icon("check", "ic-sm")} All answers saved on this device`; }, 1500);
+}
+
+function selectOption(k) {
+  const q = session.questions[session.current];
+  if (k < 0 || k >= q.options.length) return;
+  session.answers[session.current].selected = q.options[k];
+  saveSession();
+  renderQuestion();
+  flashSaved();
+}
+
+function goTo(i) {
+  if (!session) return;
+  session.current = Math.max(0, Math.min(session.questions.length - 1, i));
+  saveSession();
+  renderQuestion();
+  const active = $("palette").children[session.current];
+  if (active) active.scrollIntoView({ block: "nearest" });
+}
+
+$("qOptions").addEventListener("click", e => {
+  const b = e.target.closest("[data-opt]");
+  if (b) selectOption(Number(b.dataset.opt));
+});
+$("palette").addEventListener("click", e => {
+  const b = e.target.closest("[data-q]");
+  if (b) goTo(Number(b.dataset.q));
+});
+$("prevBtn").addEventListener("click", () => goTo(session.current - 1));
+$("nextBtn").addEventListener("click", () => goTo(session.current + 1));
+$("clearBtn").addEventListener("click", () => { session.answers[session.current].selected = null; saveSession(); renderQuestion(); });
+$("flagBtn").addEventListener("click", () => {
+  const i = session.current;
+  session.flagged[i] ? delete session.flagged[i] : (session.flagged[i] = true);
+  saveSession();
+  renderQuestion();
+});
+$("finishBtn").addEventListener("click", confirmSubmit);
+$("submitQuizBtn").addEventListener("click", confirmSubmit);
+
+document.addEventListener("keydown", e => {
+  if (!session || $("quizEnginePage").classList.contains("hidden") || document.querySelector("dialog[open]")) return;
+  if (e.ctrlKey || e.metaKey || e.altKey || e.target.matches("input, textarea, select")) return;
+  const k = e.key.toUpperCase();
+  if (k === "ARROWRIGHT") goTo(session.current + 1);
+  else if (k === "ARROWLEFT") goTo(session.current - 1);
+  else if (/^[1-6]$/.test(k)) selectOption(Number(k) - 1);
+  else if (/^[A-F]$/.test(k)) selectOption(k.charCodeAt(0) - 65);
+});
+
+async function confirmSubmit() {
+  const n = session.questions.length, a = answeredCount(), f = Object.keys(session.flagged).length;
+  const ok = await QP.confirmDialog({
+    title: "Submit your quiz?",
+    iconName: "send",
+    tone: "success",
+    confirmText: "Submit quiz",
+    cancelText: "Keep working",
+    html: `
+      <div class="details-grid">
+        <div class="detail-box"><span>Answered</span><b class="text-success">${a}</b></div>
+        <div class="detail-box"><span>Unanswered</span><b class="text-danger">${n - a}</b></div>
+        <div class="detail-box"><span>For review</span><b class="text-warning">${f}</b></div>
+      </div>
+      <p class="muted" style="font-size:.9rem">${n - a ? "Unanswered questions will be marked as <b>Not Solved</b>. " : ""}You can't change your answers after submitting.</p>`
+  });
+  if (ok) submitSession(false);
+}
+
+/* ================= Submit (ONE request with all answers) ================= */
+function showSubmitting(on) {
+  let o = $("submitOverlay");
+  if (on && !o) {
+    o = document.createElement("div");
+    o.id = "submitOverlay";
+    o.className = "busy-overlay";
+    o.innerHTML = `<div class="busy-card"><div class="spinner"></div><h3>Submitting your answers…</h3><p class="muted" style="font-size:.88rem">Please keep this page open. This only takes a moment.</p></div>`;
+    document.body.appendChild(o);
+  } else if (!on && o) o.remove();
+}
+
+async function submitSession(auto) {
+  if (!session || submitting) return;
+  submitting = true;
+  session.status = "pending_submit";
+  saveSession();
+  showSubmitting(true);
+
+  const payload = {
+    action: "submit_quiz",
+    submissionId: session.id,
+    quizName: session.quizName,
+    studentName: currentStudent.studentName,
+    studentClass: currentStudent.studentClass,
+    startedAt: session.startedAt,
+    answers: session.answers.map(a => ({ question: a.question, selected: a.selected || "Not Solved", correct: a.correct }))
+  };
+  const data = await QP.post(payload, 2);   // safe to retry: server de-duplicates by submissionId
+  submitting = false;
+  showSubmitting(false);
+
+  if (data.status !== "success") {
+    QP.toast(`${data.message || "Submission failed."} Your answers are still saved on this device.`, "error", 7000);
+    showPage("upcomingPage");
+    return;
+  }
+  markDone(session.quizName);
+  clearSession();
+  QP.clearCache();
+  updateBanners();
+  if (quizzes.length) renderQuizList();
+  displayResult(data.result);
+  QP.toast(auto ? "Your quiz was submitted automatically." : "Quiz submitted successfully!", "success");
+}
+$("retrySubmitBtn").addEventListener("click", () => submitSession(false));
+
+function updateBanners() {
+  const pending = session && (session.status === "pending_submit" || session.deadline <= QP.now());
+  const inProg = session && !pending && session.status === "in_progress";
+  const onEngine = !$("quizEnginePage").classList.contains("hidden");
+  $("pendingBanner").classList.toggle("hidden", !pending);
+  if (pending) $("pendingText").textContent = `Your answers for "${session.quizName}" are saved on this device but not submitted yet.`;
+  $("resumeBanner").classList.toggle("hidden", !inProg || onEngine);
+  $("resumeNav").classList.toggle("hidden", !inProg);
+  if (inProg) $("resumeText").textContent = `"${session.quizName}" is in progress — the timer keeps running.`;
+}
+
+/* ================= Results ================= */
+function displayResult(result) {
+  lastResult = result;
+  const details = result.details || [];
+  const correct = result.correct ?? details.filter(d => d.status === "Correct").length;
+  const wrong = details.filter(d => d.status === "Wrong").length;
+  const skipped = result.notAttempted ?? details.filter(d => d.status === "Not Solved").length;
+  const pct = result.totalMarks ? Math.round((result.obtainedMarks / result.totalMarks) * 100) : 0;
+  const ring = $("scoreRing");
+  ring.style.setProperty("--p", pct);
+  ring.style.setProperty("--ring-color", pct >= 80 ? "#059669" : pct >= 50 ? "#4f46e5" : "#dc2626");
+  $("resPct").textContent = pct + "%";
+  $("resQuizName").textContent = result.quizName;
+  $("resHeadline").textContent = pct >= 80 ? "Excellent work! 🎉" : pct >= 50 ? "Good job! 👍" : "Keep practicing! 💪";
+  $("resDate").textContent = `Submitted ${QP.fmtDateTime(result.date)}`;
+  $("resMarks").textContent = `${result.obtainedMarks} / ${result.totalMarks}`;
+  $("resCorrect").textContent = correct;
+  $("resWrong").textContent = wrong;
+  $("resSkipped").textContent = skipped;
+  setResultFilter("all");
+  showPage("resultPage");
+}
+
+function setResultFilter(f) {
+  resultFilter = f;
+  document.querySelectorAll("#resultFilter [data-filter]").forEach(b => b.classList.toggle("active", b.dataset.filter === f));
+  const items = (lastResult.details || []).map((d, i) => ({ ...d, n: i + 1 })).filter(d => f === "all" || d.status === f);
+  $("answerList").innerHTML = items.length ? items.map(d => {
+    const cls = d.status === "Correct" ? "correct" : d.status === "Wrong" ? "wrong" : "skipped";
+    return `
+      <div class="answer-item ${cls}">
+        <div class="ai-q"><span>${d.n}. ${esc(d.question)}</span>${QP.resultBadge(d.status === "Not Solved" ? "Skipped" : d.status)}</div>
+        <div class="ai-row"><b>Your answer:</b> <span class="${cls === "wrong" ? "text-danger" : ""}">${esc(d.selected)}</span></div>
+        <div class="ai-row"><b>Correct answer:</b> <span class="text-success">${esc(d.correct)}</span></div>
+      </div>`;
+  }).join("") : QP.emptyState("Nothing here", "No questions match this filter.", "check");
+}
+$("resultFilter").addEventListener("click", e => {
+  const b = e.target.closest("[data-filter]");
+  if (b) setResultFilter(b.dataset.filter);
+});
+
+/* ================= History ================= */
+let myAttempts = [];
+function loadMyQuizzes(btn) {
+  const body = $("myQuizzesBody");
+  if (!myAttempts.length) body.innerHTML = QP.skeletonRows(7, 3);
+  const run = QP.cachedGet({ action: "get_student_attempts", studentName: currentStudent.studentName }, data => {
+    if (data.status !== "success") {
+      body.innerHTML = `<tr><td colspan="7">${QP.emptyState("Couldn't load results", data.message || "Please try again.", "error")}</td></tr>`;
+      return;
+    }
+    myAttempts = data.attempts || [];
+    myAttempts.forEach(a => markDone(a.quizName));
+    const pcts = myAttempts.map(a => a.totalMarks ? Math.round((a.obtainedMarks / a.totalMarks) * 100) : 0);
+    $("histCount").textContent = myAttempts.length;
+    $("histBest").textContent = (pcts.length ? Math.max(...pcts) : 0) + "%";
+    $("histAvg").textContent = (pcts.length ? Math.round(pcts.reduce((s, v) => s + v, 0) / pcts.length) : 0) + "%";
+    if (!myAttempts.length) {
+      body.innerHTML = `<tr><td colspan="7">${QP.emptyState("No attempts yet", "Quizzes you complete will show up here.", "history")}</td></tr>`;
+      return;
+    }
+    body.innerHTML = myAttempts.map((a, i) => `
+      <tr>
+        <td data-label="Quiz" class="cell-strong">${esc(a.quizName)}</td>
+        <td data-label="Date" class="cell-muted">${esc(QP.fmtDateTime(a.date))}</td>
+        <td data-label="Attempted" class="num">${a.attempted}</td>
+        <td data-label="Skipped" class="num">${a.notAttempted}</td>
+        <td data-label="Marks" class="num"><b>${a.obtainedMarks}</b> / ${a.totalMarks}</td>
+        <td data-label="Score" class="num"><span class="score-pill">${pcts[i]}%</span></td>
+        <td data-label="" class="td-actions-cell"><button type="button" class="btn btn-soft btn-sm" data-attempt="${i}">${icon("eye", "ic-sm")} View</button></td>
+      </tr>`).join("");
+  });
+  if (btn) QP.withLoading(btn, () => run);
+}
+$("myQuizzesBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-attempt]");
+  if (b) displayResult(myAttempts[Number(b.dataset.attempt)]);
+});
+
+/* ================= Global 1-second ticker ================= */
+function tickCountdowns() {
+  const t = QP.now();
+  document.querySelectorAll("[data-cd]").forEach(el => { el.textContent = QP.fmtDuration(Number(el.dataset.cd) - t); });
+}
+
+function tick() {
+  tickCountdowns();
+  if (quizzes.length) {
+    const sig = quizzes.map(q => ({ n: q.quizName, l: liveStatus(q) })).filter(q => q.l !== "Expired").map(q => q.n + q.l).join("|");
+    if (sig !== listSignature) renderQuizList();
+  }
+  if (session && session.status === "in_progress") {
+    const left = session.deadline - QP.now();
+    const total = session.deadline - new Date(session.startedAt).getTime();
+    $("qTimer").textContent = QP.fmtClock(left);
+    $("navTimer").textContent = QP.fmtClock(left);
+    const pill = $("timerPill");
+    pill.classList.toggle("danger", left <= 60000);
+    pill.classList.toggle("warn", left > 60000 && (left <= 5 * 60000 || left <= total * 0.2));
+    if (left <= 0 && !submitting) {
+      QP.toast("Time is up! Submitting your answers…", "warning");
+      submitSession(true);
+    }
+  }
+}
+setInterval(tick, 1000);
+
+/* ================= Boot ================= */
+QP.initShell();
+if (currentStudent) initStudentSession(); else showAuth();
+</script>
+</body>
+</html>
