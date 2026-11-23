@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel - QuizPortal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">QuizPortal Admin</div>
+  <div class="nav-links" id="adminNav" style="display:none;">
+    <button class="nav-btn active" onclick="showAdminPage('dashboardPage', this); loadDashboard();">Dashboard</button>
+    <button class="nav-btn" onclick="showAdminPage('studentsPage', this); loadStudents();">Registered Students</button>
+    <button class="nav-btn" onclick="showAdminPage('quizMgmtPage', this); loadQuizzesAdmin();">Quiz Management</button>
+    <button class="nav-btn" onclick="logoutAdmin()" style="color:var(--danger);">Logout</button>
+  </div>
+</nav>
+
+<div class="container">
+  <div id="alertBox" class="alert hidden"></div>
+
+  <!-- 1. ADMIN LOGIN -->
+  <div id="loginPage" class="card" style="max-width:420px; margin:3rem auto;">
+    <h2 style="margin-bottom:1rem;">Admin Login</h2>
+    <div class="form-group">
+      <label>Admin Password</label>
+      <input type="password" id="adminPass" placeholder="Enter admin password" />
+    </div>
+    <button class="btn" style="width:100%;" onclick="loginAdmin()">Login</button>
+  </div>
+
+  <!-- 2. DASHBOARD -->
+  <div id="dashboardPage" class="hidden">
+    <div class="grid-3">
+      <div class="stat-card"><h3>Total Registered Students</h3><p id="statStudents">0</p></div>
+      <div class="stat-card"><h3>Total Quizzes</h3><p id="statQuizzes">0</p></div>
+      <div class="stat-card"><h3>Active Quizzes</h3><p id="statActive">0</p></div>
+    </div>
+  </div>
+
+  <!-- 3. REGISTERED STUDENTS -->
+  <div id="studentsPage" class="card hidden">
+    <h2>Registered Students</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Class Name</th><th>Student Name</th><th>Date of Registration</th></tr></thead>
+        <tbody id="studentsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. QUIZ MANAGEMENT -->
+  <div id="quizMgmtPage" class="hidden">
+    <div class="subtabs">
+      <button class="nav-btn active" onclick="showSubTab('createQuizTab', this)">Create New Quiz</button>
+      <button class="nav-btn" onclick="showSubTab('attemptedListTab', this); loadQuizzesAdmin();">Attempted Quizzes List</button>
+    </div>
+
+    <!-- Subtab A: Create New Quiz -->
+    <div id="createQuizTab" class="card">
+      <h2 style="margin-bottom:1rem;">Create New Quiz</h2>
+      <div class="grid-3">
+        <div class="form-group"><label>Quiz Name</label><input id="newQuizName" placeholder="e.g. Chapter 1 Test" /></div>
+        <div class="form-group"><label>Total Time (Minutes)</label><input type="number" id="newQuizTime" value="5" min="1" /></div>
+        <div class="form-group"><label>Marks per MCQ</label><input type="number" id="newQuizMarks" value="1" min="1" /></div>
+      </div>
+      <div class="form-group">
+        <label>Expiry Date & Time (Auto-expires after this)</label>
+        <input type="datetime-local" id="newQuizExpiry" />
+      </div>
+
+      <h3 style="margin:1rem 0;">MCQs</h3>
+      <div id="mcqContainer"></div>
+      <button class="btn btn-outline" onclick="addMcqField()">+ Add MCQ</button>
+      <button class="btn btn-success" onclick="saveNewQuiz()">Save & Publish Quiz</button>
+    </div>
+
+    <!-- Subtab B: Attempted Quizzes List -->
+    <div id="attemptedListTab" class="hidden">
+      <div class="card">
+        <h2>All Quizzes (Click a quiz to view student attempts)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Quiz Name</th><th>Questions</th><th>Total Time</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="adminQuizzesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Student Attempts Table -->
+      <div id="quizAttemptsCard" class="card hidden">
+        <h3 id="selectedQuizTitle">Student Attempts</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Student Name</th><th>Class</th><th>Date</th><th>Attempted</th><th>Not Attempted</th><th>Total Marks</th><th>Obtained Marks</th></tr></thead>
+            <tbody id="attemptsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Individual Student MCQ Breakdown -->
+      <div id="studentDetailCard" class="card hidden">
+        <h3 id="selectedStudentTitle">Student MCQ Breakdown</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Question</th><th>Selected</th><th>Correct</th><th>Status</th></tr></thead>
+            <tbody id="studentDetailBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzw9NVQ9GwmAruitPse9wkIpgeVKehh-4jSLmFhr5fud6k0EgeOIJs3GxJNfIJg-8dqBg/exec";
+let adminPassword = sessionStorage.getItem("admin_pass") || "";
+
+function showAlert(msg, type = "error") {
+  const box = document.getElementById("alertBox");
+  box.textContent = msg;
+  box.className = `alert alert-${type}`;
+  box.classList.remove("hidden");
+  setTimeout(() => box.classList.add("hidden"), 4000);
+}
+
+async function apiPost(payload) {
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+}
+
+async function loginAdmin() {
+  const pass = document.getElementById("adminPass").value;
+  const data = await apiPost({ action: "admin_login", password: pass });
+  if (data.status === "success") {
+    adminPassword = pass;
+    sessionStorage.setItem("admin_pass", pass);
+    initAdmin();
+  } else {
+    showAlert("Wrong password.");
+  }
+}
+
+function logoutAdmin() {
+  sessionStorage.removeItem("admin_pass");
+  adminPassword = "";
+  document.getElementById("adminNav").style.display = "none";
+  showAdminPage("loginPage");
+}
+
+function showAdminPage(pageId, btn) {
+  ["loginPage", "dashboardPage", "studentsPage", "quizMgmtPage"].forEach(id => {
+    document.getElementById(id).classList.add("hidden");
+  });
+  document.getElementById(pageId).classList.remove("hidden");
+  if (btn) {
+    document.querySelectorAll("#adminNav .nav-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+}
+
+function showSubTab(tabId, btn) {
+  ["createQuizTab", "attemptedListTab"].forEach(id => document.getElementById(id).classList.add("hidden"));
+  document.getElementById(tabId).classList.remove("hidden");
+  document.querySelectorAll(".subtabs .nav-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+function initAdmin() {
+  document.getElementById("adminNav").style.display = "flex";
+  showAdminPage("dashboardPage");
+  loadDashboard();
+  if (!document.getElementById("mcqContainer").children.length) addMcqField();
+}
+
+async function loadDashboard() {
+  const [sRes, qRes] = await Promise.all([
+    fetch(`${SCRIPT_URL}?action=list_students&password=${encodeURIComponent(adminPassword)}`),
+    fetch(`${SCRIPT_URL}?action=list_quizzes`)
+  ]);
+  const sData = await sRes.json();
+  const qData = await qRes.json();
+  if (sData.status === "success") document.getElementById("statStudents").textContent = sData.students.length;
+  if (qData.status === "success") {
+    document.getElementById("statQuizzes").textContent = qData.quizzes.length;
+    document.getElementById("statActive").textContent = qData.quizzes.filter(q => q.status === "Active").length;
+  }
+}
+
+async function loadStudents() {
+  const body = document.getElementById("studentsBody");
+  body.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
+  const res = await fetch(`${SCRIPT_URL}?action=list_students&password=${encodeURIComponent(adminPassword)}`);
+  const data = await res.json();
+  if (data.status !== "success") return showAlert(data.message);
+  body.innerHTML = data.students.map(s => `
+    <tr><td>${s.studentClass}</td><td>${s.studentName}</td><td>${new Date(s.registeredAt).toLocaleString()}</td></tr>
+  `).join("") || "<tr><td colspan='3'>No students registered yet.</td></tr>";
+}
+
+function addMcqField() {
+  const div = document.createElement("div");
+  div.className = "mcq-builder";
+  div.innerHTML = `
+    <div class="form-group"><label>Question</label><input class="q-text" placeholder="Enter MCQ question" /></div>
+    <div class="grid-3">
+      <input class="q-opt" placeholder="Option A" />
+      <input class="q-opt" placeholder="Option B" />
+      <input class="q-opt" placeholder="Option C" />
+      <input class="q-opt" placeholder="Option D" />
+    </div>
+    <div class="form-group" style="margin-top:0.5rem;">
+      <label>Correct Option (Must match one option exactly)</label>
+      <input class="q-correct" placeholder="Paste exact correct option text" />
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove</button>
+  `;
+  document.getElementById("mcqContainer").appendChild(div);
+}
+
+async function saveNewQuiz() {
+  const quizName = document.getElementById("newQuizName").value.trim();
+  const totalTimeMinutes = document.getElementById("newQuizTime").value;
+  const marksPerMcq = document.getElementById("newQuizMarks").value;
+  const expiresAt = document.getElementById("newQuizExpiry").value;
+
+  const questions = [];
+  document.querySelectorAll(".mcq-builder").forEach(box => {
+    const qText = box.querySelector(".q-text").value.trim();
+    const opts = Array.from(box.querySelectorAll(".q-opt")).map(i => i.value.trim()).filter(Boolean);
+    const correct = box.querySelector(".q-correct").value.trim();
+    if (qText && opts.length >= 2 && correct) questions.push({ question: qText, options: opts, correct });
+  });
+
+  if (!quizName || !questions.length) return showAlert("Enter a Quiz Name and at least one valid MCQ.");
+
+  const data = await apiPost({
+    action: "create_quiz",
+    password: adminPassword,
+    quizName,
+    totalTimeMinutes,
+    marksPerMcq,
+    expiresAt: expiresAt ? new Date(expiresAt).toISOString() : "",
+    questions
+  });
+
+  if (data.status === "success") {
+    showAlert("Quiz saved & Google Drive folder created!", "success");
+    document.getElementById("newQuizName").value = "";
+    document.getElementById("mcqContainer").innerHTML = "";
+    addMcqField();
+  } else {
+    showAlert(data.message);
+  }
+}
+
+async function loadQuizzesAdmin() {
+  const body = document.getElementById("adminQuizzesBody");
+  body.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+  const res = await fetch(`${SCRIPT_URL}?action=list_quizzes`);
+  const data = await res.json();
+  if (data.status !== "success") return showAlert(data.message);
+
+  body.innerHTML = data.quizzes.map(q => {
+    const isAct = q.status === "Active";
+    return `
+      <tr class="clickable" onclick="loadQuizAttempts('${q.quizName.replace(/'/g, "\\'")}')">
+        <td><strong>${q.quizName}</strong></td>
+        <td>${q.totalQuestions}</td>
+        <td>${q.totalTimeMinutes} min</td>
+        <td><span class="badge ${isAct ? 'badge-active' : 'badge-expired'}">${q.status}</span></td>
+        <td onclick="event.stopPropagation()">
+          <button class="btn btn-sm ${isAct ? 'btn-danger' : 'btn-success'}" onclick="toggleQuiz('${q.quizName.replace(/'/g, "\\'")}', ${!isAct})">
+            ${isAct ? 'Expire' : 'Activate'}
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("") || "<tr><td colspan='5'>No quizzes created yet.</td></tr>";
+}
+
+async function toggleQuiz(quizName, activate) {
+  const data = await apiPost({ action: "toggle_quiz", password: adminPassword, quizName, activate });
+  if (data.status === "success") {
+    showAlert(`Quiz marked as ${data.statusText}.`, "success");
+    loadQuizzesAdmin();
+  } else {
+    showAlert(data.message);
+  }
+}
+
+async function loadQuizAttempts(quizName) {
+  document.getElementById("quizAttemptsCard").classList.remove("hidden");
+  document.getElementById("studentDetailCard").classList.add("hidden");
+  document.getElementById("selectedQuizTitle").textContent = `Student Attempts: ${quizName}`;
+  const body = document.getElementById("attemptsBody");
+  body.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+
+  const res = await fetch(`${SCRIPT_URL}?action=get_quiz_attempts&quizName=${encodeURIComponent(quizName)}&password=${encodeURIComponent(adminPassword)}`);
+  const data = await res.json();
+  if (data.status !== "success") return showAlert(data.message);
+
+  window._quizAttempts = data.attempts;
+  body.innerHTML = data.attempts.map((a, idx) => `
+    <tr class="clickable" onclick="showStudentDetails(${idx})">
+      <td><strong>${a.studentName}</strong></td>
+      <td>${a.studentClass}</td>
+      <td>${new Date(a.date).toLocaleString()}</td>
+      <td>${a.attempted}</td>
+      <td>${a.notAttempted}</td>
+      <td>${a.totalMarks}</td>
+      <td><strong>${a.obtainedMarks}</strong></td>
+    </tr>
+  `).join("") || "<tr><td colspan='7'>No students have attempted this quiz yet.</td></tr>";
+}
+
+function showStudentDetails(idx) {
+  const a = window._quizAttempts[idx];
+  document.getElementById("studentDetailCard").classList.remove("hidden");
+  document.getElementById("selectedStudentTitle").textContent = `${a.studentName} (${a.studentClass}) - MCQ Breakdown`;
+  document.getElementById("studentDetailBody").innerHTML = a.details.map(d => {
+    const badge = d.status === "Correct" ? "badge-active" : (d.status === "Wrong" ? "badge-expired" : "badge-warning");
+    return `<tr><td>${d.question}</td><td>${d.selected}</td><td>${d.correct}</td><td><span class="badge ${badge}">${d.status}</span></td></tr>`;
+  }).join("");
+}
+
+if (adminPassword) initAdmin();
+</script>
+</body>
+</html>
