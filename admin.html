@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>QuizPortal — Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://script.google.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+
+<!-- ============ PRELOADER ============ -->
+<div id="preloader" role="status" aria-label="Loading Admin Panel">
+  <div class="preloader-inner">
+    <div class="preloader-logo">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div class="preloader-title">Quiz<span>Portal</span></div>
+    <div class="preloader-bar"></div>
+    <div class="preloader-text">Loading admin console…</div>
+  </div>
+</div>
+
+<!-- ============ ADMIN LOGIN ============ -->
+<div id="authView" class="auth-wrap hidden">
+  <section class="auth-hero">
+    <div class="brand-row">
+      <div class="brand-logo"><svg class="ic"><use href="#i-logo"/></svg></div>
+      <div class="brand-name">QuizPortal<small>ADMIN CONSOLE</small></div>
+    </div>
+    <div>
+      <h1>Manage quizzes, bulk MCQs, schedules and results effortlessly.</h1>
+      <p>Create timed exams manually or upload hundreds of MCQs in one click via JSON, schedule exact start times, and monitor student performance.</p>
+      <div class="hero-features">
+        <div class="hero-feature"><div class="hf-ic"><svg class="ic"><use href="#i-upload"/></svg></div><div><strong>Bulk JSON Upload</strong><span>Import hundreds of MCQs at once with instant validation &amp; preview.</span></div></div>
+        <div class="hero-feature"><div class="hf-ic"><svg class="ic"><use href="#i-calendar"/></svg></div><div><strong>Smart Scheduling</strong><span>Pick a start time and duration — expiry is calculated automatically.</span></div></div>
+        <div class="hero-feature"><div class="hf-ic"><svg class="ic"><use href="#i-trophy"/></svg></div><div><strong>Detailed Analytics</strong><span>Inspect every student attempt and export results to CSV.</span></div></div>
+      </div>
+    </div>
+    <div class="hero-foot muted" style="font-size:.8rem;color:#818cf8">© QuizPortal Admin</div>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <h2>Admin Sign In</h2>
+      <p class="lead">Enter your administrator password to access the dashboard.</p>
+      <form id="adminLoginForm" novalidate>
+        <div class="form-group">
+          <label for="adminPass">Admin password</label>
+          <div class="input-icon" style="display:flex;align-items:center">
+            <svg class="ic"><use href="#i-lock"/></svg>
+            <input type="password" id="adminPass" autocomplete="current-password" placeholder="Enter admin password" required style="padding-right:2.75rem" />
+            <button type="button" id="togglePassBtn" aria-label="Show password" style="position:absolute;right:.5rem;background:none;border:0;color:var(--muted);padding:.35rem;border-radius:6px;display:grid;place-items:center">
+              <svg class="ic ic-sm"><use href="#i-eye"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Sign in to Console <svg class="ic"><use href="#i-right"/></svg></button>
+      </form>
+      <p class="hint mt-2" style="text-align:center">Looking for the student quiz portal? <a href="index.html">Open Student Portal</a></p>
+    </div>
+  </section>
+</div>
+
+<!-- ============ ADMIN APP ============ -->
+<div id="appView" class="app hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo"><svg class="ic"><use href="#i-logo"/></svg></div>
+      <div class="brand-name">QuizPortal<small>ADMIN CONSOLE</small></div>
+      <button type="button" class="sidebar-close" aria-label="Close menu"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <nav class="sidebar-nav" aria-label="Admin navigation">
+      <div class="nav-label">Overview</div>
+      <button type="button" class="nav-item active" data-page="dashboardPage"><svg class="ic"><use href="#i-dashboard"/></svg> Dashboard</button>
+
+      <div class="nav-label">Quizzes</div>
+      <button type="button" class="nav-item" data-page="createQuizPage"><svg class="ic"><use href="#i-plus"/></svg> Create Quiz <span class="nav-badge hidden" id="editNavBadge">Editing</span></button>
+      <button type="button" class="nav-item" data-page="manageQuizzesPage"><svg class="ic"><use href="#i-list"/></svg> Manage Quizzes</button>
+
+      <div class="nav-label">People</div>
+      <button type="button" class="nav-item" data-page="studentsPage"><svg class="ic"><use href="#i-users"/></svg> Registered Students</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar">AD</div>
+        <div><div class="u-name">Administrator</div><div class="u-sub">QuizPortal Manager</div></div>
+      </div>
+      <button type="button" class="nav-item danger" id="logoutBtn"><svg class="ic"><use href="#i-logout"/></svg> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
+      <div style="min-width:0">
+        <div class="page-title" id="pageTitle">Dashboard</div>
+        <div class="page-sub" id="pageSub">Overview of students and quizzes</div>
+      </div>
+      <div class="topbar-actions">
+        <button type="button" class="btn btn-primary btn-sm" id="topCreateBtn"><svg class="ic ic-sm"><use href="#i-add"/></svg><span class="hide-sm">New Quiz</span></button>
+        <button type="button" class="btn btn-outline btn-sm" id="refreshBtn" title="Refresh data"><svg class="ic ic-sm"><use href="#i-refresh"/></svg><span class="hide-sm">Refresh</span></button>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== 1. DASHBOARD ===== -->
+      <section id="dashboardPage" class="page">
+        <div class="welcome-banner">
+          <div>
+            <h2>Welcome back, Admin 👋</h2>
+            <p>Create timed quizzes manually or upload hundreds of MCQs via JSON in seconds.</p>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn" style="background:#fff;color:var(--primary)" id="quickCreateManual"><svg class="ic ic-sm"><use href="#i-edit3"/></svg> Create Quiz</button>
+            <button type="button" class="btn" style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.3)" id="quickUploadJson"><svg class="ic ic-sm"><use href="#i-upload"/></svg> Upload JSON MCQs</button>
+          </div>
+        </div>
+
+        <div class="grid grid-4 stats-grid mb-2" style="margin-bottom:1.5rem">
+          <div class="stat-card"><div class="stat-ic indigo"><svg class="ic"><use href="#i-users"/></svg></div><div><div class="stat-label">Students</div><div class="stat-value" id="statStudents">0</div></div></div>
+          <div class="stat-card"><div class="stat-ic sky"><svg class="ic"><use href="#i-list"/></svg></div><div><div class="stat-label">Total Quizzes</div><div class="stat-value" id="statQuizzes">0</div></div></div>
+          <div class="stat-card"><div class="stat-ic green"><svg class="ic"><use href="#i-play"/></svg></div><div><div class="stat-label">Active Now</div><div class="stat-value" id="statActive">0</div></div></div>
+          <div class="stat-card"><div class="stat-ic amber"><svg class="ic"><use href="#i-calendar"/></svg></div><div><div class="stat-label">Scheduled</div><div class="stat-value" id="statScheduled">0</div></div></div>
+        </div>
+
+        <div class="card card-flush">
+          <div class="card-head">
+            <div><div class="card-title" id="recentTitle"><svg class="ic"><use href="#i-clock"/></svg> Recent Quizzes</div><div class="card-sub">Quick view of your latest published quizzes.</div></div>
+            <button type="button" class="btn btn-outline btn-sm" data-goto="manageQuizzesPage">Manage all <svg class="ic ic-sm"><use href="#i-right"/></svg></button>
+          </div>
+          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="recentTitle">
+            <table class="stack">
+              <thead><tr><th>Quiz Name</th><th>Access Code</th><th class="num">MCQs</th><th>Start Time</th><th>Auto Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="recentQuizzesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 2. CREATE / EDIT QUIZ ===== -->
+      <section id="createQuizPage" class="page hidden">
+        <div id="editingBanner" class="banner banner-info hidden">
+          <svg class="ic"><use href="#i-edit3"/></svg>
+          <span id="editingBannerText">Editing existing quiz.</span>
+          <button type="button" class="btn btn-sm btn-outline" id="cancelEditBtn">Cancel edit</button>
+        </div>
+
+        <!-- Quiz Details & Auto-Expiry Schedule -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title"><svg class="ic"><use href="#i-calendar"/></svg> Quiz Details &amp; Schedule</div>
+              <div class="card-sub">Choose the start time and allowed duration in minutes — expiry is calculated automatically.</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newQuizName">Quiz Name *</label>
+              <input type="text" id="newQuizName" placeholder="e.g. Biology Chapter 1 Test" required />
+            </div>
+            <div class="form-group">
+              <label for="newQuizCode">Unique Quiz Code (3–10 chars) *</label>
+              <div class="code-input-row">
+                <input type="text" id="newQuizCode" class="code-input" minlength="3" maxlength="10" placeholder="e.g. CS11C4" autocomplete="off" required />
+                <button type="button" class="btn btn-soft btn-sm" id="genCodeBtn" title="Generate unique code" style="min-height:44px"><svg class="ic ic-sm"><use href="#i-sparkles"/></svg> Generate</button>
+              </div>
+              <p class="hint">Students must enter this exact code to start the quiz (letters &amp; numbers, 3–10 chars).</p>
+            </div>
+            <div class="form-group">
+              <label for="newQuizMarks">Marks per MCQ *</label>
+              <input type="number" id="newQuizMarks" value="1" min="1" step="0.5" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newQuizStart">Start Date &amp; Time *</label>
+              <input type="datetime-local" id="newQuizStart" required />
+              <div class="preset-row" id="startPresets">
+                <button type="button" class="preset-chip" data-start-preset="now">Now</button>
+                <button type="button" class="preset-chip" data-start-preset="15">+15 min</button>
+                <button type="button" class="preset-chip" data-start-preset="60">+1 hour</button>
+                <button type="button" class="preset-chip" data-start-preset="tomorrow">Tomorrow 9:00 AM</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="newQuizTime">Allowed Time (Minutes) *</label>
+              <input type="number" id="newQuizTime" value="30" min="1" max="1440" required />
+              <div class="preset-row" id="durPresets">
+                <button type="button" class="preset-chip" data-dur="10">10 min</button>
+                <button type="button" class="preset-chip" data-dur="15">15 min</button>
+                <button type="button" class="preset-chip" data-dur="30">30 min</button>
+                <button type="button" class="preset-chip" data-dur="45">45 min</button>
+                <button type="button" class="preset-chip" data-dur="60">60 min</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="expiry-preview mt-1" id="expiryPreview" aria-live="polite">
+            <svg class="ic"><use href="#i-hourglass"/></svg>
+            <div style="flex:1;min-width:220px">
+              <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;font-weight:700">Auto-Calculated Expiry Time</div>
+              <div id="expiryText" style="font-size:.98rem;margin-top:.1rem">Select a start time and duration</div>
+            </div>
+            <span class="badge badge-info" id="expiryStatusBadge">Ready</span>
+          </div>
+        </div>
+
+        <!-- MCQs Entry Card: Manual Builder vs JSON File Upload -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title"><svg class="ic"><use href="#i-list"/></svg> Questions (MCQs)</div>
+              <div class="card-sub">Add questions manually or upload a JSON file to import hundreds of MCQs at once.</div>
+            </div>
+            <div class="segmented inline" id="mcqModeTabs" role="tablist" aria-label="MCQ input method">
+              <button type="button" role="tab" class="active" data-mode="manual" aria-selected="true"><svg class="ic ic-sm"><use href="#i-edit3"/></svg> Manual Builder</button>
+              <button type="button" role="tab" data-mode="json" aria-selected="false"><svg class="ic ic-sm"><use href="#i-upload"/></svg> JSON File Upload</button>
+            </div>
+          </div>
+
+          <!-- Option 1: Manual Builder -->
+          <div id="manualMode">
+            <div id="mcqContainer"></div>
+            <div class="sticky-actions">
+              <span class="badge badge-info badge-plain" id="manualCountBadge" style="margin-right:auto">1 MCQ</span>
+              <button type="button" class="btn btn-outline" id="addMcqBtn"><svg class="ic ic-sm"><use href="#i-add"/></svg> Add MCQ</button>
+              <button type="button" class="btn btn-success" id="saveManualBtn"><svg class="ic ic-sm"><use href="#i-save"/></svg> Save &amp; Publish Quiz</button>
+            </div>
+          </div>
+
+          <!-- Option 2: JSON File Upload (Bulk hundreds of MCQs) -->
+          <div id="jsonMode" class="hidden">
+            <div class="btn-row mb-2">
+              <button type="button" class="btn btn-soft btn-sm" id="downloadSampleBtn"><svg class="ic ic-sm"><use href="#i-download"/></svg> Download Sample JSON</button>
+              <button type="button" class="btn btn-outline btn-sm" id="copySampleBtn"><svg class="ic ic-sm"><use href="#i-copy"/></svg> Copy JSON Format</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="togglePasteBtn"><svg class="ic ic-sm"><use href="#i-json"/></svg> Paste JSON text instead</button>
+            </div>
+
+            <div class="dropzone" id="jsonDropzone" role="button" tabindex="0" aria-label="Upload JSON file with MCQs">
+              <div class="dz-ic"><svg class="ic ic-lg"><use href="#i-upload"/></svg></div>
+              <h4>Drag &amp; drop your MCQs <code>.json</code> file here</h4>
+              <p>Or click to browse from your computer — supports hundreds or thousands of MCQs at once.</p>
+              <span class="badge badge-info badge-plain" id="jsonFileBadge">Accepts .json files</span>
+              <input type="file" id="jsonFileInput" accept=".json,application/json" class="sr-only" />
+            </div>
+
+            <!-- Optional Paste JSON box -->
+            <div id="pasteJsonBox" class="mt-2 hidden">
+              <label for="jsonTextarea">Paste JSON array or object</label>
+              <textarea id="jsonTextarea" rows="7" placeholder='[{"question":"What is 2 + 2?","options":["3","4","5","6"],"correct":"4"}]'></textarea>
+              <div class="btn-row mt-1">
+                <button type="button" class="btn btn-primary btn-sm" id="parsePastedBtn"><svg class="ic ic-sm"><use href="#i-check"/></svg> Parse &amp; Validate JSON</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="clearPasteBtn">Clear text</button>
+              </div>
+            </div>
+
+            <!-- Validation Summary + Paginated Preview -->
+            <div id="jsonResultArea" class="hidden">
+              <div class="json-summary" id="jsonSummary"></div>
+              <ul class="error-list hidden" id="jsonErrors"></ul>
+
+              <div class="card card-flush mt-2 mb-0" id="jsonPreviewCard">
+                <div class="card-head" style="padding-bottom:1rem">
+                  <div class="card-title" style="font-size:.95rem" id="jsonPreviewTitle"><svg class="ic ic-sm"><use href="#i-eye"/></svg> Parsed MCQs Preview</div>
+                  <div class="input-icon" style="min-width:200px;max-width:280px;flex:1">
+                    <svg class="ic ic-sm"><use href="#i-search"/></svg>
+                    <input type="search" id="jsonSearch" placeholder="Filter preview MCQs…" style="min-height:36px;padding-top:.4rem;padding-bottom:.4rem" />
+                  </div>
+                </div>
+                <div class="table-wrap table-scroll" tabindex="0" role="region" aria-labelledby="jsonPreviewTitle">
+                  <table class="preview-table stack">
+                    <thead><tr><th style="width:54px">#</th><th>Question</th><th>Options</th><th>Correct Answer</th></tr></thead>
+                    <tbody id="jsonPreviewBody"></tbody>
+                  </table>
+                </div>
+                <div class="preview-bar" id="jsonPager">
+                  <span id="jsonPagerInfo">Showing 0–0 of 0</span>
+                  <div class="btn-row">
+                    <button type="button" class="btn btn-outline btn-sm" id="jsonPrevPage"><svg class="ic ic-sm"><use href="#i-left"/></svg> Prev</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="jsonNextPage">Next <svg class="ic ic-sm"><use href="#i-right"/></svg></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sticky-actions">
+                <button type="button" class="btn btn-ghost" id="clearJsonBtn"><svg class="ic ic-sm"><use href="#i-trash"/></svg> Clear</button>
+                <button type="button" class="btn btn-outline" id="loadIntoManualBtn"><svg class="ic ic-sm"><use href="#i-edit3"/></svg> Edit in Manual Builder</button>
+                <button type="button" class="btn btn-success" id="saveJsonBtn"><svg class="ic ic-sm"><use href="#i-save"/></svg> Publish Quiz</button>
+              </div>
+            </div>
+
+            <!-- Format Reference -->
+            <details class="mt-2">
+              <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--primary);padding:.35rem 0">View supported JSON format examples</summary>
+              <p class="hint mb-2">You can upload a plain array of questions, or an object with <code>questions</code>. The <code>correct</code> field accepts the exact option text, a letter (<code>"A"</code>–<code>"F"</code>), or a 1-based number (<code>1</code>–<code>6</code>).</p>
+              <pre class="code-sample" id="sampleCodeBlock"></pre>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 3. MANAGE QUIZZES & ATTEMPTS ===== -->
+      <section id="manageQuizzesPage" class="page hidden">
+        <div class="card card-flush">
+          <div class="card-head" style="padding-bottom:1rem">
+            <div>
+              <div class="card-title" id="allQuizzesTitle"><svg class="ic"><use href="#i-list"/></svg> All Quizzes</div>
+              <div class="card-sub">Manage schedules, status, MCQs, or click a quiz to inspect student attempts.</div>
+            </div>
+            <div class="toolbar">
+              <div class="input-icon">
+                <svg class="ic ic-sm"><use href="#i-search"/></svg>
+                <input type="search" id="quizSearch" placeholder="Search quizzes…" />
+              </div>
+              <div class="segmented inline" id="quizStatusFilter" role="tablist" aria-label="Filter quizzes by status">
+                <button type="button" class="active" data-status="all">All</button>
+                <button type="button" data-status="Active">Active</button>
+                <button type="button" data-status="Scheduled">Scheduled</button>
+                <button type="button" data-status="Expired">Expired</button>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="allQuizzesTitle">
+            <table class="stack">
+              <thead><tr><th>Quiz</th><th>Access Code</th><th class="num">MCQs</th><th>Schedule (Start → Auto Expiry)</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="adminQuizzesBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Student Attempts Drill-Down -->
+        <div id="quizAttemptsCard" class="card card-flush hidden">
+          <div class="card-head" style="padding-bottom:1rem">
+            <div>
+              <div class="card-title" id="selectedQuizTitle"><svg class="ic"><use href="#i-trophy"/></svg> Student Attempts</div>
+              <div class="card-sub" id="selectedQuizSummary">Click any student to inspect their question-by-question answers.</div>
+            </div>
+            <div class="toolbar">
+              <div class="input-icon">
+                <svg class="ic ic-sm"><use href="#i-search"/></svg>
+                <input type="search" id="attemptSearch" placeholder="Filter by student or class…" />
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" id="exportAttemptsCsvBtn"><svg class="ic ic-sm"><use href="#i-download"/></svg> Export CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="selectedQuizTitle">
+            <table class="stack">
+              <thead><tr><th>Student</th><th>Class</th><th>Submitted</th><th class="num">Attempted</th><th class="num">Skipped</th><th class="num">Marks</th><th class="num">Score</th><th></th></tr></thead>
+              <tbody id="attemptsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 4. REGISTERED STUDENTS ===== -->
+      <section id="studentsPage" class="page hidden">
+        <div class="card card-flush">
+          <div class="card-head" style="padding-bottom:1rem">
+            <div>
+              <div class="card-title" id="studentsTitle"><svg class="ic"><use href="#i-users"/></svg> Registered Students <span class="badge badge-info badge-plain" id="studentsCountBadge">0</span></div>
+              <div class="card-sub">All unique students registered on the portal.</div>
+            </div>
+            <div class="toolbar">
+              <div class="input-icon">
+                <svg class="ic ic-sm"><use href="#i-search"/></svg>
+                <input type="search" id="studentSearch" placeholder="Search name or class…" />
+              </div>
+              <select id="classFilter" aria-label="Filter by class" style="width:auto;min-width:150px">
+                <option value="">All Classes</option>
+              </select>
+              <button type="button" class="btn btn-outline btn-sm" id="exportStudentsCsvBtn"><svg class="ic ic-sm"><use href="#i-download"/></svg> Export CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap" tabindex="0" role="region" aria-labelledby="studentsTitle">
+            <table class="stack">
+              <thead><tr><th>#</th><th>Student Name</th><th>Class</th><th>Registered On</th></tr></thead>
+              <tbody id="studentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ============ RESCHEDULE QUIZ MODAL ============ -->
+<dialog id="scheduleDialog" class="modal" closedby="any" aria-labelledby="scheduleDlgTitle">
+  <form method="dialog" id="scheduleForm" class="modal-box" novalidate>
+    <div class="modal-header">
+      <div class="modal-icon"><svg class="ic"><use href="#i-calendar"/></svg></div>
+      <h1 id="scheduleDlgTitle" style="font-size:1.1rem;flex:1">Reschedule Quiz</h1>
+      <button type="button" class="btn btn-ghost btn-icon" id="closeScheduleDlg" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p class="muted mb-2" id="scheduleQuizLabel" style="font-size:.9rem"></p>
+      <div class="form-group">
+        <label for="editQuizCode">Unique Quiz Code (3–10 chars)</label>
+        <div class="code-input-row">
+          <input type="text" id="editQuizCode" class="code-input" minlength="3" maxlength="10" placeholder="e.g. CS11C4" autocomplete="off" />
+          <button type="button" class="btn btn-soft btn-sm" id="genEditCodeBtn" style="min-height:44px"><svg class="ic ic-sm"><use href="#i-sparkles"/></svg> Generate</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="editStart">Start Date &amp; Time *</label>
+        <input type="datetime-local" id="editStart" required />
+        <div class="preset-row" id="editStartPresets">
+          <button type="button" class="preset-chip" data-edit-start="now">Now</button>
+          <button type="button" class="preset-chip" data-edit-start="15">+15 min</button>
+          <button type="button" class="preset-chip" data-edit-start="60">+1 hour</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="editMinutes">Allowed Time (Minutes) *</label>
+          <input type="number" id="editMinutes" min="1" max="1440" required />
+        </div>
+        <div class="form-group">
+          <label for="editMarks">Marks per MCQ</label>
+          <input type="number" id="editMarks" min="1" step="0.5" required />
+        </div>
+      </div>
+      <div class="expiry-preview" id="editExpiryPreview" aria-live="polite">
+        <svg class="ic"><use href="#i-hourglass"/></svg>
+        <div style="flex:1">
+          <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;font-weight:700">Auto-Calculated Expiry</div>
+          <div id="editExpiryText" style="font-size:.94rem"></div>
+        </div>
+        <span class="badge badge-info" id="editExpiryBadge">Ready</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="cancelScheduleBtn">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="saveScheduleBtn"><svg class="ic ic-sm"><use href="#i-save"/></svg> Update Schedule</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ STUDENT BREAKDOWN MODAL ============ -->
+<dialog id="breakdownDialog" class="modal modal-lg" closedby="any" aria-labelledby="breakdownTitle">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-icon"><svg class="ic"><use href="#i-trophy"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <h1 id="breakdownTitle" style="font-size:1.1rem">Student MCQ Breakdown</h1>
+        <div class="muted" id="breakdownSub" style="font-size:.82rem"></div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-icon" id="closeBreakdownBtn" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="details-grid" id="breakdownStats"></div>
+      <div class="flex between items-center wrap gap-1 mb-2">
+        <div class="segmented inline" id="breakdownFilter" role="tablist" aria-label="Filter answers">
+          <button type="button" class="active" data-bf="all">All</button>
+          <button type="button" data-bf="Correct">Correct</button>
+          <button type="button" data-bf="Wrong">Wrong</button>
+          <button type="button" data-bf="Not Solved">Skipped</button>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" id="exportBreakdownCsvBtn"><svg class="ic ic-sm"><use href="#i-download"/></svg> Export CSV</button>
+      </div>
+      <div class="answer-list" id="breakdownList"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" id="doneBreakdownBtn">Close</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="common.js?v=3"></script>
+<script>
+const { icon, esc } = QP;
+const $ = id => document.getElementById(id);
+
+let adminPassword = sessionStorage.getItem("admin_pass") || "";
+let allQuizzes = [];
+let allStudents = [];
+let currentQuizNameForAttempts = "";
+let currentAttempts = [];
+let currentBreakdownAttempt = null;
+let breakdownFilter = "all";
+let quizStatusFilter = "all";
+let editingQuizName = null;
+
+// JSON upload state
+let parsedJsonQuestions = [];
+let jsonPage = 1;
+const JSON_PAGE_SIZE = 50;
+
+const SAMPLE_JSON = [
+  {
+    question: "Which planet is known as the Red Planet?",
+    options: ["Earth", "Mars", "Jupiter", "Venus"],
+    correct: "Mars"
+  },
+  {
+    question: "What is the chemical symbol for Water?",
+    options: ["O2", "H2O", "CO2", "NaCl"],
+    correct: "B"
+  },
+  {
+    question: "How many continents are there on Earth?",
+    options: ["5", "6", "7", "8"],
+    correct: 3
+  }
+];
+$("sampleCodeBlock").textContent = JSON.stringify(SAMPLE_JSON, null, 2);
+
+const PAGES = {
+  dashboardPage: ["Dashboard", "Overview of students and quizzes"],
+  createQuizPage: ["Create Quiz", "Build MCQs manually or upload a JSON file"],
+  manageQuizzesPage: ["Manage Quizzes", "Schedules, activation status and student attempts"],
+  studentsPage: ["Registered Students", "Search and export all registered students"]
+};
+
+/* ================= Navigation ================= */
+function showPage(id) {
+  Object.keys(PAGES).forEach(p => $(p).classList.toggle("hidden", p !== id));
+  $("pageTitle").textContent = id === "createQuizPage" && editingQuizName ? `Edit Quiz: ${editingQuizName}` : PAGES[id][0];
+  $("pageSub").textContent = PAGES[id][1];
+  document.querySelectorAll(".sidebar .nav-item[data-page]").forEach(b => {
+    const on = b.dataset.page === id;
+    b.classList.toggle("active", on);
+    on ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current");
+  });
+  if (id === "dashboardPage") loadDashboard();
+  if (id === "studentsPage") loadStudents();
+  if (id === "manageQuizzesPage") loadQuizzesAdmin();
+  if (id === "createQuizPage") ensureCreateDefaults();
+  window.scrollTo({ top: 0 });
+}
+
+document.addEventListener("click", e => {
+  const nav = e.target.closest("[data-page], [data-goto]");
+  if (nav) showPage(nav.dataset.page || nav.dataset.goto);
+});
+
+$("topCreateBtn").addEventListener("click", () => { resetCreateForm(); setMcqMode("manual"); showPage("createQuizPage"); });
+$("quickCreateManual").addEventListener("click", () => { resetCreateForm(); setMcqMode("manual"); showPage("createQuizPage"); });
+$("quickUploadJson").addEventListener("click", () => { resetCreateForm(); setMcqMode("json"); showPage("createQuizPage"); });
+
+/* ================= Admin Auth ================= */
+$("togglePassBtn").addEventListener("click", () => {
+  const inp = $("adminPass");
+  const show = inp.type === "password";
+  inp.type = show ? "text" : "password";
+  $("togglePassBtn").setAttribute("aria-label", show ? "Hide password" : "Show password");
+});
+
+$("adminLoginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const pass = $("adminPass").value;
+  if (!pass) return QP.toast("Please enter the admin password.", "error");
+  await QP.withLoading(e.submitter, async () => {
+    const data = await QP.post({ action: "admin_login", password: pass });
+    if (data.status !== "success") return QP.toast(data.message || "Wrong password.", "error");
+    adminPassword = pass;
+    sessionStorage.setItem("admin_pass", pass);
+    $("adminPass").value = "";
+    initAdmin();
+    QP.toast("Signed in to Admin Console.", "success");
+  });
+});
+
+$("logoutBtn").addEventListener("click", async () => {
+  const ok = await QP.confirmDialog({
+    title: "Log out of Admin Console?",
+    message: "You will need to re-enter the admin password to sign back in.",
+    confirmText: "Log out",
+    tone: "danger",
+    iconName: "logout"
+  });
+  if (!ok) return;
+  sessionStorage.removeItem("admin_pass");
+  adminPassword = "";
+  QP.clearCache();
+  showAuth();
+});
+
+function showAuth() {
+  $("appView").classList.add("hidden");
+  $("authView").classList.remove("hidden");
+  QP.hidePreloader();
+}
+
+function initAdmin() {
+  $("authView").classList.add("hidden");
+  $("appView").classList.remove("hidden");
+  ensureCreateDefaults();
+  showPage("dashboardPage");
+}
+
+/* ================= Live status helper ================= */
+function liveStatus(q) {
+  const t = QP.now();
+  if (q.status === "Expired") return "Expired";
+  if (q.forceActive) return "Active";
+  if (q.expiresAt && t > new Date(q.expiresAt).getTime()) return "Expired";
+  if (q.startsAt && t < new Date(q.startsAt).getTime()) return "Scheduled";
+  return "Active";
+}
+
+/* ================= Dashboard ================= */
+function makeUniqueCode(len = 6) {
+  const taken = new Set(allQuizzes.map(q => String(q.quizCode || "").toUpperCase()));
+  for (let i = 0; i < 30; i++) {
+    const c = QP.generateQuizCode(len);
+    if (!taken.has(c)) return c;
+  }
+  return QP.generateQuizCode(8);
+}
+
+function sanitizeCodeInput(el) {
+  el.value = el.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+}
+$("newQuizCode").addEventListener("input", e => sanitizeCodeInput(e.target));
+$("editQuizCode").addEventListener("input", e => sanitizeCodeInput(e.target));
+$("genCodeBtn").addEventListener("click", () => { $("newQuizCode").value = makeUniqueCode(6); });
+$("genEditCodeBtn").addEventListener("click", () => { $("editQuizCode").value = makeUniqueCode(6); });
+
+function codeCellHtml(code) {
+  if (!code) return `<span class="cell-muted">None</span>`;
+  return `<button type="button" class="code-badge" data-copy-code="${esc(code)}" title="Click to copy quiz code">${icon("key", "ic-sm")} ${esc(code)}</button>`;
+}
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest("[data-copy-code]");
+  if (!btn) return;
+  e.stopPropagation();
+  const code = btn.dataset.copyCode;
+  try {
+    await navigator.clipboard.writeText(code);
+    QP.toast(`Quiz code "${code}" copied!`, "success", 2500);
+  } catch (err) {
+    QP.toast(`Quiz code: ${code}`, "info");
+  }
+});
+
+function loadDashboard(btn) {
+  if (!allQuizzes.length) $("recentQuizzesBody").innerHTML = QP.skeletonRows(7, 3);
+  const p1 = QP.cachedGet({ action: "list_students", password: adminPassword }, d => {
+    if (d.status === "success") {
+      allStudents = d.students || [];
+      $("statStudents").textContent = allStudents.length;
+    } else if (d.message === "Unauthorized") {
+      sessionStorage.removeItem("admin_pass");
+      adminPassword = "";
+      showAuth();
+      QP.toast("Session expired. Please sign in again.", "warning");
+    }
+  });
+  const p2 = QP.cachedGet({ action: "list_quizzes", password: adminPassword }, d => {
+    if (d.status === "success") {
+      allQuizzes = d.quizzes || [];
+      renderDashboardStats();
+    }
+    QP.hidePreloader();
+  });
+  const both = Promise.all([p1, p2]);
+  if (btn) QP.withLoading(btn, () => both);
+  return both;
+}
+
+function renderDashboardStats() {
+  const items = allQuizzes.map(q => ({ ...q, live: liveStatus(q) }));
+  $("statQuizzes").textContent = items.length;
+  $("statActive").textContent = items.filter(q => q.live === "Active").length;
+  $("statScheduled").textContent = items.filter(q => q.live === "Scheduled").length;
+
+  const recent = items.slice(0, 5);
+  if (!recent.length) {
+    $("recentQuizzesBody").innerHTML = `<tr><td colspan="7">${QP.emptyState("No quizzes yet", "Create your first quiz manually or upload MCQs via JSON.", "plus")}</td></tr>`;
+    return;
+  }
+  $("recentQuizzesBody").innerHTML = recent.map(q => `
+    <tr>
+      <td data-label="Quiz" class="cell-strong">${esc(q.quizName)}</td>
+      <td data-label="Access Code">${codeCellHtml(q.quizCode)}</td>
+      <td data-label="MCQs" class="num">${q.totalQuestions}</td>
+      <td data-label="Start Time" class="cell-muted">${esc(QP.fmtDateTime(q.startsAt || q.createdAt))}</td>
+      <td data-label="Auto Expiry" class="cell-muted">${esc(QP.fmtDateTime(q.expiresAt))}</td>
+      <td data-label="Status">${QP.statusBadge(q.live)}</td>
+      <td data-label="" class="td-actions-cell">
+        <div class="td-actions">
+          <button type="button" class="btn btn-soft btn-sm" data-dash-attempts="${esc(q.quizName)}">${icon("eye", "ic-sm")} Attempts</button>
+          <button type="button" class="btn btn-outline btn-sm" data-open-schedule="${esc(q.quizName)}">${icon("calendar", "ic-sm")} Schedule</button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+$("recentQuizzesBody").addEventListener("click", e => {
+  const att = e.target.closest("[data-dash-attempts]");
+  if (att) {
+    showPage("manageQuizzesPage");
+    loadQuizAttempts(att.dataset.dashAttempts);
+    return;
+  }
+  const sch = e.target.closest("[data-open-schedule]");
+  if (sch) openScheduleModal(sch.dataset.openSchedule);
+});
+
+$("refreshBtn").addEventListener("click", e => {
+  QP.clearCache();
+  const btn = e.currentTarget;
+  if (!$("dashboardPage").classList.contains("hidden")) loadDashboard(btn);
+  else if (!$("studentsPage").classList.contains("hidden")) loadStudents(btn);
+  else if (!$("manageQuizzesPage").classList.contains("hidden")) loadQuizzesAdmin(btn);
+  else loadDashboard(btn);
+});
+
+/* ================= Auto-calculated expiry helper ================= */
+function updateExpiryUI(startInput, minInput, previewEl, textEl, badgeEl) {
+  const startVal = startInput.value;
+  const mins = Number(minInput.value);
+  if (!startVal || !(mins > 0)) {
+    previewEl.classList.add("warn");
+    textEl.innerHTML = "Enter both a valid <strong>Start Time</strong> and <strong>Allowed Minutes</strong>.";
+    badgeEl.className = "badge badge-warning";
+    badgeEl.textContent = "Incomplete";
+    return null;
+  }
+  const start = new Date(startVal);
+  if (isNaN(start.getTime())) return null;
+  const expiry = new Date(start.getTime() + mins * 60000);
+  const nowMs = QP.now();
+
+  textEl.innerHTML = `<strong>${esc(QP.fmtDateTime(expiry.toISOString()))}</strong> <span class="muted">(${mins} min after ${esc(QP.fmtDateTime(start.toISOString()))})</span>`;
+
+  if (expiry.getTime() <= nowMs) {
+    previewEl.classList.add("warn");
+    badgeEl.className = "badge badge-expired";
+    badgeEl.textContent = "Already in past";
+  } else if (start.getTime() > nowMs + 60000) {
+    previewEl.classList.remove("warn");
+    badgeEl.className = "badge badge-scheduled";
+    badgeEl.textContent = `Starts in ${QP.fmtDuration(start.getTime() - nowMs)}`;
+  } else {
+    previewEl.classList.remove("warn");
+    badgeEl.className = "badge badge-active";
+    badgeEl.textContent = "Active immediately";
+  }
+  return { start, expiry };
+}
+
+function refreshCreateExpiry() {
+  return updateExpiryUI($("newQuizStart"), $("newQuizTime"), $("expiryPreview"), $("expiryText"), $("expiryStatusBadge"));
+}
+$("newQuizStart").addEventListener("input", refreshCreateExpiry);
+$("newQuizTime").addEventListener("input", refreshCreateExpiry);
+
+$("startPresets").addEventListener("click", e => {
+  const btn = e.target.closest("[data-start-preset]");
+  if (!btn) return;
+  const p = btn.dataset.startPreset;
+  const d = new Date(QP.now());
+  d.setSeconds(0, 0);
+  if (p === "15") d.setMinutes(d.getMinutes() + 15);
+  else if (p === "60") d.setMinutes(d.getMinutes() + 60);
+  else if (p === "tomorrow") { d.setDate(d.getDate() + 1); d.setHours(9, 0, 0, 0); }
+  $("newQuizStart").value = QP.toLocalInput(d);
+  refreshCreateExpiry();
+});
+$("durPresets").addEventListener("click", e => {
+  const btn = e.target.closest("[data-dur]");
+  if (!btn) return;
+  $("newQuizTime").value = btn.dataset.dur;
+  refreshCreateExpiry();
+});
+
+function ensureCreateDefaults() {
+  if (!$("newQuizStart").value) {
+    const d = new Date(QP.now());
+    d.setSeconds(0, 0);
+    $("newQuizStart").value = QP.toLocalInput(d);
+  }
+  if (!$("mcqContainer").children.length) addMcqField();
+  refreshCreateExpiry();
+  updateManualBadge();
+}
+
+/* ================= Create Quiz: Manual vs JSON Mode ================= */
+function setMcqMode(mode) {
+  document.querySelectorAll("#mcqModeTabs [data-mode]").forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on);
+  });
+  $("manualMode").classList.toggle("hidden", mode !== "manual");
+  $("jsonMode").classList.toggle("hidden", mode !== "json");
+}
+$("mcqModeTabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-mode]");
+  if (b) setMcqMode(b.dataset.mode);
+});
+
+/* ---------- Manual MCQ Builder ---------- */
+let mcqGroupSeq = 0;
+
+function addMcqField(data = null) {
+  const gid = `mcq_correct_${++mcqGroupSeq}`;
+  const opts = data && Array.isArray(data.options) && data.options.length >= 2 ? data.options : ["", "", "", ""];
+  const correctIdx = data ? Math.max(0, opts.indexOf(data.correct)) : 0;
+
+  const box = document.createElement("div");
+  box.className = "mcq-builder";
+  box.dataset.gid = gid;
+  box.innerHTML = `
+    <div class="mcq-builder-head">
+      <span class="mcq-index">Question #1</span>
+      <div class="btn-row">
+        <button type="button" class="btn btn-ghost btn-sm" data-add-opt title="Add another option (up to 6)">${icon("add", "ic-sm")} Option</button>
+        <button type="button" class="btn btn-soft-danger btn-sm" data-remove-mcq>${icon("trash", "ic-sm")} Remove</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Question text *</label>
+      <input type="text" class="q-text" placeholder="Type the MCQ question here…" value="${esc(data ? data.question : "")}" />
+    </div>
+    <div class="label" style="margin-bottom:.5rem">Options <span class="muted" style="font-weight:400">(select the circle next to the correct answer)</span></div>
+    <div class="opt-grid"></div>
+  `;
+  const grid = box.querySelector(".opt-grid");
+  opts.forEach((val, idx) => appendOptionInput(grid, gid, idx, val, idx === correctIdx));
+  $("mcqContainer").appendChild(box);
+  renumberMcqs();
+  return box;
+}
+
+function appendOptionInput(grid, gid, idx, val = "", checked = false) {
+  if (idx >= 6) return;
+  const letter = String.fromCharCode(65 + idx);
+  const row = document.createElement("div");
+  row.className = "opt-input";
+  row.innerHTML = `
+    <input type="radio" name="${gid}" value="${idx}" ${checked ? "checked" : ""} aria-label="Mark option ${letter} as correct" title="Correct answer" />
+    <span class="opt-letter">${letter}</span>
+    <input type="text" class="q-opt" placeholder="Option ${letter}" value="${esc(val)}" />
+  `;
+  grid.appendChild(row);
+}
+
+function renumberMcqs() {
+  const cards = $("mcqContainer").querySelectorAll(".mcq-builder");
+  cards.forEach((c, idx) => { c.querySelector(".mcq-index").textContent = `Question #${idx + 1}`; });
+  updateManualBadge();
+}
+
+function updateManualBadge() {
+  const count = $("mcqContainer").querySelectorAll(".mcq-builder").length;
+  $("manualCountBadge").textContent = `${count} MCQ${count === 1 ? "" : "s"}`;
+}
+
+$("addMcqBtn").addEventListener("click", () => {
+  const box = addMcqField();
+  box.querySelector(".q-text").focus();
+});
+
+$("mcqContainer").addEventListener("click", e => {
+  const rm = e.target.closest("[data-remove-mcq]");
+  if (rm) {
+    const cards = $("mcqContainer").querySelectorAll(".mcq-builder");
+    if (cards.length <= 1) return QP.toast("A quiz needs at least one MCQ.", "warning");
+    rm.closest(".mcq-builder").remove();
+    renumberMcqs();
+    return;
+  }
+  const addOpt = e.target.closest("[data-add-opt]");
+  if (addOpt) {
+    const box = addOpt.closest(".mcq-builder");
+    const grid = box.querySelector(".opt-grid");
+    const count = grid.querySelectorAll(".opt-input").length;
+    if (count >= 6) return QP.toast("Maximum 6 options (A–F) per MCQ.", "info");
+    appendOptionInput(grid, box.dataset.gid, count, "", false);
+  }
+});
+
+function collectManualQuestions() {
+  const questions = [];
+  const errors = [];
+  $("mcqContainer").querySelectorAll(".mcq-builder").forEach((box, idx) => {
+    const n = idx + 1;
+    const qText = box.querySelector(".q-text").value.trim();
+    const rows = Array.from(box.querySelectorAll(".opt-input"));
+    const opts = [];
+    let correct = "";
+    rows.forEach(r => {
+      const val = r.querySelector(".q-opt").value.trim();
+      const radio = r.querySelector("input[type='radio']");
+      if (val) {
+        opts.push(val);
+        if (radio.checked) correct = val;
+      }
+    });
+    if (!qText && !opts.length) return; // completely empty card ignored unless all are empty
+    if (!qText) return errors.push(`Question #${n} is missing its question text.`);
+    if (opts.length < 2) return errors.push(`Question #${n} needs at least 2 filled options.`);
+    if (!correct) return errors.push(`Question #${n}: select the radio button next to a filled correct option.`);
+    questions.push({ question: qText, options: opts, correct });
+  });
+  return { questions, errors };
+}
+
+$("saveManualBtn").addEventListener("click", () => {
+  const { questions, errors } = collectManualQuestions();
+  if (errors.length) return QP.toast(errors[0], "error", 5500);
+  if (!questions.length) return QP.toast("Add at least one complete MCQ before publishing.", "error");
+  publishQuiz(questions, $("saveManualBtn"));
+});
+
+/* ---------- JSON File Upload (Bulk MCQs) ---------- */
+$("downloadSampleBtn").addEventListener("click", () => {
+  QP.download("sample-mcqs.json", JSON.stringify(SAMPLE_JSON, null, 2), "application/json");
+  QP.toast("Sample JSON downloaded.", "success");
+});
+
+$("copySampleBtn").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(SAMPLE_JSON, null, 2));
+    QP.toast("Sample JSON copied to clipboard.", "success");
+  } catch (e) {
+    QP.toast("Could not copy automatically — see format example below.", "info");
+  }
+});
+
+$("togglePasteBtn").addEventListener("click", () => {
+  $("pasteJsonBox").classList.toggle("hidden");
+  if (!$("pasteJsonBox").classList.contains("hidden")) $("jsonTextarea").focus();
+});
+$("clearPasteBtn").addEventListener("click", () => { $("jsonTextarea").value = ""; });
+
+const dz = $("jsonDropzone");
+const fileInput = $("jsonFileInput");
+dz.addEventListener("click", () => fileInput.click());
+dz.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("dragover"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("dragover"));
+dz.addEventListener("drop", e => {
+  e.preventDefault();
+  dz.classList.remove("dragover");
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) handleJsonFile(file);
+});
+fileInput.addEventListener("change", () => {
+  if (fileInput.files && fileInput.files[0]) handleJsonFile(fileInput.files[0]);
+  fileInput.value = "";
+});
+
+function handleJsonFile(file) {
+  if (!file.name.toLowerCase().endsWith(".json") && file.type && !file.type.includes("json") && !file.type.includes("text")) {
+    return QP.toast("Please upload a valid .json file.", "error");
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    $("jsonFileBadge").textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    parseJsonSource(String(reader.result || ""), file.name);
+  };
+  reader.onerror = () => QP.toast("Could not read that file.", "error");
+  reader.readAsText(file);
+}
+
+$("parsePastedBtn").addEventListener("click", () => {
+  const txt = $("jsonTextarea").value.trim();
+  if (!txt) return QP.toast("Paste some JSON first.", "warning");
+  $("jsonFileBadge").textContent = "Pasted JSON";
+  parseJsonSource(txt, "Pasted JSON");
+});
+
+function normalizeClientQuestion(item, idx) {
+  if (!item || typeof item !== "object") return { error: `Item #${idx + 1}: expected an object.` };
+  const question = String(item.question || item.q || item.text || "").trim();
+  if (!question) return { error: `Item #${idx + 1}: missing "question" text.` };
+
+  let rawOpts = item.options || item.choices;
+  if (!Array.isArray(rawOpts) && rawOpts && typeof rawOpts === "object") {
+    rawOpts = Object.keys(rawOpts).sort().map(k => rawOpts[k]);
+  } else if (!Array.isArray(rawOpts)) {
+    rawOpts = ["A", "B", "C", "D", "E", "F"]
+      .map(l => item["option" + l] ?? item["opt" + l] ?? item[l] ?? item[l.toLowerCase()])
+      .filter(v => v !== undefined && v !== null);
+  }
+  const options = (Array.isArray(rawOpts) ? rawOpts : []).map(o => String(o).trim()).filter(Boolean);
+  if (options.length < 2) return { error: `Item #${idx + 1} ("${question.slice(0, 35)}…"): needs at least 2 options.` };
+
+  const rawCorrect = item.correct ?? item.answer ?? item.correctAnswer ?? item.correctOption ?? "";
+  let correct = String(rawCorrect == null ? "" : rawCorrect).trim();
+  if (!correct) return { error: `Item #${idx + 1} ("${question.slice(0, 35)}…"): missing "correct" answer.` };
+
+  if (!options.includes(correct)) {
+    const letter = correct.toUpperCase();
+    if (/^[A-F]$/.test(letter) && options[letter.charCodeAt(0) - 65]) correct = options[letter.charCodeAt(0) - 65];
+    else if (/^\d+$/.test(correct) && options[Number(correct) - 1]) correct = options[Number(correct) - 1];
+    else {
+      // Case-insensitive match fallback
+      const ci = options.find(o => o.toLowerCase() === correct.toLowerCase());
+      if (ci) correct = ci;
+    }
+  }
+  if (!options.includes(correct)) {
+    return { error: `Item #${idx + 1} ("${question.slice(0, 35)}…"): correct answer "${correct}" does not match any option.` };
+  }
+  return { ok: { question, options, correct } };
+}
+
+function parseJsonSource(rawText, label) {
+  let parsed;
+  try {
+    parsed = JSON.parse(rawText.replace(/^\uFEFF/, ""));
+  } catch (err) {
+    parsedJsonQuestions = [];
+    $("jsonResultArea").classList.remove("hidden");
+    $("jsonSummary").className = "json-summary bad";
+    $("jsonSummary").innerHTML = `${icon("error")} <strong>Invalid JSON syntax:</strong> ${esc(err.message)}`;
+    $("jsonErrors").classList.add("hidden");
+    $("jsonPreviewCard").classList.add("hidden");
+    $("saveJsonBtn").disabled = true;
+    $("loadIntoManualBtn").disabled = true;
+    return;
+  }
+
+  let list = null;
+  if (Array.isArray(parsed)) {
+    list = parsed;
+  } else if (parsed && typeof parsed === "object" && Array.isArray(parsed.questions || parsed.mcqs)) {
+    list = parsed.questions || parsed.mcqs;
+    // Convenience: auto-fill quiz metadata if included in the JSON wrapper and currently empty
+    if (parsed.quizName && !$("newQuizName").value.trim()) $("newQuizName").value = String(parsed.quizName).trim();
+    if (parsed.quizCode && !$("newQuizCode").value.trim()) {
+      $("newQuizCode").value = String(parsed.quizCode).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+    }
+    if (parsed.totalTimeMinutes && Number(parsed.totalTimeMinutes) > 0) {
+      $("newQuizTime").value = Number(parsed.totalTimeMinutes);
+      refreshCreateExpiry();
+    }
+    if (parsed.marksPerMcq && Number(parsed.marksPerMcq) > 0) $("newQuizMarks").value = Number(parsed.marksPerMcq);
+  } else {
+    parsedJsonQuestions = [];
+    $("jsonResultArea").classList.remove("hidden");
+    $("jsonSummary").className = "json-summary bad";
+    $("jsonSummary").innerHTML = `${icon("error")} Expected a JSON array of MCQs or an object with a <code>"questions"</code> array.`;
+    $("jsonErrors").classList.add("hidden");
+    $("jsonPreviewCard").classList.add("hidden");
+    $("saveJsonBtn").disabled = true;
+    $("loadIntoManualBtn").disabled = true;
+    return;
+  }
+
+  const valid = [];
+  const errors = [];
+  list.forEach((item, idx) => {
+    const res = normalizeClientQuestion(item, idx);
+    if (res.ok) valid.push(res.ok);
+    else errors.push(res.error);
+  });
+
+  parsedJsonQuestions = valid;
+  jsonPage = 1;
+  $("jsonSearch").value = "";
+  $("jsonResultArea").classList.remove("hidden");
+
+  if (!valid.length) {
+    $("jsonSummary").className = "json-summary bad";
+    $("jsonSummary").innerHTML = `${icon("error")} <strong>0 valid MCQs found</strong> (${errors.length} issue${errors.length === 1 ? "" : "s"}). Fix the JSON and upload again.`;
+    $("jsonPreviewCard").classList.add("hidden");
+  } else {
+    $("jsonSummary").className = "json-summary ok";
+    $("jsonSummary").innerHTML = `${icon("success")} <strong>${valid.length} valid MCQ${valid.length === 1 ? "" : "s"} ready</strong> from ${esc(label)}${errors.length ? ` — <span class="text-danger">${errors.length} skipped</span>` : ""}`;
+    $("jsonPreviewCard").classList.remove("hidden");
+  }
+
+  if (errors.length) {
+    $("jsonErrors").classList.remove("hidden");
+    $("jsonErrors").innerHTML = errors.slice(0, 40).map(e => `<li>${esc(e)}</li>`).join("") +
+      (errors.length > 40 ? `<li>…and ${errors.length - 40} more issues</li>` : "");
+  } else {
+    $("jsonErrors").classList.add("hidden");
+  }
+
+  $("saveJsonBtn").disabled = !valid.length;
+  $("saveJsonBtn").innerHTML = `${icon("save", "ic-sm")} Publish Quiz (${valid.length} MCQs)`;
+  $("loadIntoManualBtn").disabled = !valid.length;
+  renderJsonPreview();
+}
+
+function renderJsonPreview() {
+  const q = $("jsonSearch").value.trim().toLowerCase();
+  const filtered = q
+    ? parsedJsonQuestions.map((m, i) => ({ ...m, idx: i + 1 })).filter(m =>
+        m.question.toLowerCase().includes(q) || m.correct.toLowerCase().includes(q) || m.options.some(o => o.toLowerCase().includes(q)))
+    : parsedJsonQuestions.map((m, i) => ({ ...m, idx: i + 1 }));
+
+  const total = filtered.length;
+  const pages = Math.max(1, Math.ceil(total / JSON_PAGE_SIZE));
+  if (jsonPage > pages) jsonPage = pages;
+  const start = (jsonPage - 1) * JSON_PAGE_SIZE;
+  const slice = filtered.slice(start, start + JSON_PAGE_SIZE);
+
+  $("jsonPreviewBody").innerHTML = slice.length ? slice.map(m => `
+    <tr>
+      <td data-label="#" class="cell-muted">${m.idx}</td>
+      <td data-label="Question" class="full cell-strong">${esc(m.question)}</td>
+      <td data-label="Options" class="full cell-muted">${m.options.map((o, k) => `<b>${String.fromCharCode(65 + k)}.</b> ${esc(o)}`).join(" &nbsp;•&nbsp; ")}</td>
+      <td data-label="Correct" class="correct-cell">${esc(m.correct)}</td>
+    </tr>`).join("") : `<tr><td colspan="4">${QP.emptyState("No matching MCQs", "Try another search keyword.", "search")}</td></tr>`;
+
+  $("jsonPagerInfo").textContent = total ? `Showing ${start + 1}–${Math.min(start + JSON_PAGE_SIZE, total)} of ${total} MCQs (Page ${jsonPage} of ${pages})` : "Showing 0 of 0";
+  $("jsonPrevPage").disabled = jsonPage <= 1;
+  $("jsonNextPage").disabled = jsonPage >= pages;
+}
+
+$("jsonSearch").addEventListener("input", () => { jsonPage = 1; renderJsonPreview(); });
+$("jsonPrevPage").addEventListener("click", () => { if (jsonPage > 1) { jsonPage--; renderJsonPreview(); } });
+$("jsonNextPage").addEventListener("click", () => { jsonPage++; renderJsonPreview(); });
+
+$("clearJsonBtn").addEventListener("click", () => {
+  parsedJsonQuestions = [];
+  $("jsonResultArea").classList.add("hidden");
+  $("jsonFileBadge").textContent = "Accepts .json files";
+  $("jsonTextarea").value = "";
+});
+
+$("loadIntoManualBtn").addEventListener("click", async () => {
+  if (!parsedJsonQuestions.length) return;
+  if (parsedJsonQuestions.length > 100) {
+    const ok = await QP.confirmDialog({
+      title: `Load ${parsedJsonQuestions.length} MCQs into Manual Builder?`,
+      message: "Large quiz sets are faster to publish directly from JSON Upload. Loading all of them into manual form inputs may feel slower on mobile.",
+      confirmText: "Load anyway",
+      iconName: "warning",
+      tone: "warning"
+    });
+    if (!ok) return;
+  }
+  $("mcqContainer").innerHTML = "";
+  parsedJsonQuestions.forEach(q => addMcqField(q));
+  setMcqMode("manual");
+  QP.toast(`Loaded ${parsedJsonQuestions.length} MCQs into Manual Builder.`, "success");
+});
+
+$("saveJsonBtn").addEventListener("click", () => {
+  if (!parsedJsonQuestions.length) return QP.toast("Upload a valid JSON file with MCQs first.", "error");
+  publishQuiz(parsedJsonQuestions, $("saveJsonBtn"));
+});
+
+/* ---------- Publish Quiz (shared by Manual & JSON) ---------- */
+function showBusyOverlay(on, title = "Publishing quiz…", sub = "Saving MCQs and schedule to Google Drive.") {
+  let o = $("adminBusyOverlay");
+  if (on && !o) {
+    o = document.createElement("div");
+    o.id = "adminBusyOverlay";
+    o.className = "busy-overlay";
+    o.innerHTML = `<div class="busy-card"><div class="spinner"></div><h3></h3><p class="muted" style="font-size:.88rem"></p></div>`;
+    o.querySelector("h3").textContent = title;
+    o.querySelector("p").textContent = sub;
+    document.body.appendChild(o);
+  } else if (!on && o) o.remove();
+}
+
+async function publishQuiz(questions, btn) {
+  const quizName = $("newQuizName").value.trim();
+  const quizCode = $("newQuizCode").value.trim().toUpperCase();
+  const marksPerMcq = Number($("newQuizMarks").value);
+  const totalTimeMinutes = Number($("newQuizTime").value);
+  const startVal = $("newQuizStart").value;
+
+  if (!quizName) { $("newQuizName").focus(); return QP.toast("Please enter a Quiz Name.", "error"); }
+  if (!/^[A-Z0-9]{3,10}$/.test(quizCode)) {
+    $("newQuizCode").focus();
+    return QP.toast("Quiz Code must be 3 to 10 letters or numbers (e.g. CS11C4).", "error");
+  }
+  const codeConflict = allQuizzes.find(q =>
+    String(q.quizCode || "").toUpperCase() === quizCode &&
+    q.quizName.toLowerCase() !== quizName.toLowerCase()
+  );
+  if (codeConflict) {
+    $("newQuizCode").focus();
+    return QP.toast(`Code "${quizCode}" is already used by "${codeConflict.quizName}". Choose a unique code.`, "error", 5500);
+  }
+  if (!startVal) { $("newQuizStart").focus(); return QP.toast("Please choose a Start Date & Time.", "error"); }
+  if (!(totalTimeMinutes > 0)) { $("newQuizTime").focus(); return QP.toast("Allowed Time must be at least 1 minute.", "error"); }
+  if (!(marksPerMcq > 0)) { $("newQuizMarks").focus(); return QP.toast("Marks per MCQ must be greater than 0.", "error"); }
+
+  const startDate = new Date(startVal);
+  const expiryDate = new Date(startDate.getTime() + totalTimeMinutes * 60000);
+  if (expiryDate.getTime() <= QP.now()) {
+    const proceed = await QP.confirmDialog({
+      title: "Calculated expiry time is in the past",
+      message: `With start ${QP.fmtDateTime(startDate)} + ${totalTimeMinutes} min, this quiz would already be expired (${QP.fmtDateTime(expiryDate)}). Publish anyway?`,
+      confirmText: "Publish anyway",
+      cancelText: "Fix schedule",
+      tone: "warning",
+      iconName: "warning"
+    });
+    if (!proceed) return;
+  }
+
+  // Warn if overwriting another existing quiz accidentally
+  if (!editingQuizName && allQuizzes.some(q => q.quizName.toLowerCase() === quizName.toLowerCase())) {
+    const overwrite = await QP.confirmDialog({
+      title: `Overwrite "${quizName}"?`,
+      message: "A quiz with this name already exists. Publishing will replace its questions and schedule (existing student attempts are preserved).",
+      confirmText: "Overwrite quiz",
+      tone: "warning",
+      iconName: "warning"
+    });
+    if (!overwrite) return;
+  }
+
+  showBusyOverlay(true, `Publishing ${questions.length} MCQ${questions.length === 1 ? "" : "s"}…`, "Saving quiz data, code & schedule to Google Drive.");
+  await QP.withLoading(btn, async () => {
+    const data = await QP.post({
+      action: "create_quiz",
+      password: adminPassword,
+      quizName,
+      quizCode,
+      totalTimeMinutes,
+      marksPerMcq,
+      startsAt: startDate.toISOString(),
+      questions
+    });
+    showBusyOverlay(false);
+    if (data.status !== "success") return QP.toast(data.message || "Failed to save quiz.", "error");
+    QP.clearCache();
+    QP.toast(`"${quizName}" published! Code: ${data.quizCode || quizCode} • Auto-expires ${QP.fmtDateTime(data.expiresAt)}.`, "success", 6500);
+    resetCreateForm();
+    showPage("manageQuizzesPage");
+  });
+}
+
+function resetCreateForm() {
+  editingQuizName = null;
+  $("editingBanner").classList.add("hidden");
+  $("editNavBadge").classList.add("hidden");
+  $("newQuizName").value = "";
+  $("newQuizName").readOnly = false;
+  $("newQuizCode").value = "";
+  $("newQuizMarks").value = "1";
+  $("newQuizTime").value = "30";
+  const d = new Date(QP.now());
+  d.setSeconds(0, 0);
+  $("newQuizStart").value = QP.toLocalInput(d);
+  $("mcqContainer").innerHTML = "";
+  addMcqField();
+  parsedJsonQuestions = [];
+  $("jsonResultArea").classList.add("hidden");
+  $("jsonFileBadge").textContent = "Accepts .json files";
+  $("jsonTextarea").value = "";
+  refreshCreateExpiry();
+}
+
+$("cancelEditBtn").addEventListener("click", () => {
+  resetCreateForm();
+  showPage("manageQuizzesPage");
+});
+
+/* ================= Manage Quizzes ================= */
+function loadQuizzesAdmin(btn) {
+  if (!allQuizzes.length) $("adminQuizzesBody").innerHTML = QP.skeletonRows(6, 4);
+  const run = QP.cachedGet({ action: "list_quizzes", password: adminPassword }, data => {
+    if (data.status !== "success") {
+      $("adminQuizzesBody").innerHTML = `<tr><td colspan="6">${QP.emptyState("Couldn't load quizzes", data.message || "Please try again.", "error")}</td></tr>`;
+      return;
+    }
+    allQuizzes = data.quizzes || [];
+    renderQuizzesAdmin();
+  });
+  if (btn) QP.withLoading(btn, () => run);
+  return run;
+}
+
+function renderQuizzesAdmin() {
+  const qText = $("quizSearch").value.trim().toLowerCase();
+  const list = allQuizzes
+    .map(q => ({ ...q, live: liveStatus(q) }))
+    .filter(q => (quizStatusFilter === "all" || q.live === quizStatusFilter) && (!qText || q.quizName.toLowerCase().includes(qText) || String(q.quizCode || "").toLowerCase().includes(qText)));
+
+  if (!list.length) {
+    $("adminQuizzesBody").innerHTML = `<tr><td colspan="6">${QP.emptyState("No quizzes found", qText || quizStatusFilter !== "all" ? "Try clearing your search or status filter." : "Click New Quiz to create your first quiz.", "list")}</td></tr>`;
+    return;
+  }
+
+  $("adminQuizzesBody").innerHTML = list.map(q => {
+    const isAct = q.live === "Active";
+    const sel = currentQuizNameForAttempts === q.quizName ? "selected" : "";
+    const startStr = q.startsAt ? QP.fmtDateTime(q.startsAt) : "Immediate";
+    const expStr = q.expiresAt ? QP.fmtDateTime(q.expiresAt) : "No expiry";
+    return `
+      <tr class="clickable ${sel}" data-row-quiz="${esc(q.quizName)}">
+        <td data-label="Quiz">
+          <div class="cell-strong">${esc(q.quizName)}</div>
+          <div class="cell-muted">${q.marksPerMcq || 1} mark/MCQ &bull; ${q.totalMarks} total marks</div>
+        </td>
+        <td data-label="Access Code">${codeCellHtml(q.quizCode)}</td>
+        <td data-label="MCQs" class="num"><b>${q.totalQuestions}</b></td>
+        <td data-label="Schedule" class="full">
+          <div><span class="cell-muted">Start:</span> ${esc(startStr)}</div>
+          <div><span class="cell-muted">Expires:</span> <strong>${esc(expStr)}</strong> <span class="badge badge-info badge-plain" style="margin-left:.25rem">${q.totalTimeMinutes} min</span></div>
+        </td>
+        <td data-label="Status">${QP.statusBadge(q.live)}</td>
+        <td data-label="" class="td-actions-cell">
+          <div class="td-actions">
+            <button type="button" class="btn btn-soft btn-sm" data-action="attempts" data-quiz="${esc(q.quizName)}" title="View student attempts">${icon("eye", "ic-sm")} Attempts</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="schedule" data-quiz="${esc(q.quizName)}" title="Change code, start time & duration">${icon("calendar", "ic-sm")} Schedule</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="edit" data-quiz="${esc(q.quizName)}" title="Edit MCQs & settings">${icon("edit3", "ic-sm")} Edit</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="pdf" data-quiz="${esc(q.quizName)}" title="Download printable MCQs PDF">${icon("printer", "ic-sm")}</button>
+            <button type="button" class="btn btn-outline btn-sm" data-action="export" data-quiz="${esc(q.quizName)}" title="Download MCQs as JSON">${icon("download", "ic-sm")}</button>
+            <button type="button" class="btn btn-sm ${isAct ? "btn-soft-danger" : "btn-soft-success"}" data-action="toggle" data-activate="${!isAct}" data-quiz="${esc(q.quizName)}" title="${isAct ? "Force expire now" : "Force activate now"}">${icon("power", "ic-sm")} ${isAct ? "Expire" : "Activate"}</button>
+            <button type="button" class="btn btn-soft-danger btn-sm" data-action="delete" data-quiz="${esc(q.quizName)}" title="Delete quiz">${icon("trash", "ic-sm")}</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+$("quizSearch").addEventListener("input", renderQuizzesAdmin);
+$("quizStatusFilter").addEventListener("click", e => {
+  const b = e.target.closest("[data-status]");
+  if (!b) return;
+  quizStatusFilter = b.dataset.status;
+  document.querySelectorAll("#quizStatusFilter [data-status]").forEach(el => el.classList.toggle("active", el === b));
+  renderQuizzesAdmin();
+});
+
+$("adminQuizzesBody").addEventListener("click", e => {
+  const btn = e.target.closest("[data-action]");
+  if (btn) {
+    e.stopPropagation();
+    const act = btn.dataset.action, name = btn.dataset.quiz;
+    if (act === "attempts") loadQuizAttempts(name, btn);
+    else if (act === "schedule") openScheduleModal(name);
+    else if (act === "edit") loadQuizForEdit(name, btn);
+    else if (act === "pdf") exportQuizPdf(name, btn);
+    else if (act === "export") exportQuizJson(name, btn);
+    else if (act === "toggle") toggleQuiz(name, btn.dataset.activate === "true", btn);
+    else if (act === "delete") deleteQuiz(name, btn);
+    return;
+  }
+  const row = e.target.closest("[data-row-quiz]");
+  if (row) loadQuizAttempts(row.dataset.rowQuiz);
+});
+
+async function toggleQuiz(quizName, activate, btn) {
+  await QP.withLoading(btn, async () => {
+    const data = await QP.post({ action: "toggle_quiz", password: adminPassword, quizName, activate });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    QP.clearCache();
+    QP.toast(`"${quizName}" marked as ${data.statusText}.`, "success");
+    await loadQuizzesAdmin();
+    renderDashboardStats();
+  });
+}
+
+async function deleteQuiz(quizName, btn) {
+  const ok = await QP.confirmDialog({
+    title: `Delete "${quizName}"?`,
+    message: "This moves the quiz folder (including its questions and attempts) to Google Drive Trash.",
+    confirmText: "Delete quiz",
+    tone: "danger",
+    iconName: "trash"
+  });
+  if (!ok) return;
+  await QP.withLoading(btn, async () => {
+    const data = await QP.post({ action: "delete_quiz", password: adminPassword, quizName });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    QP.clearCache();
+    if (currentQuizNameForAttempts === quizName) {
+      currentQuizNameForAttempts = "";
+      $("quizAttemptsCard").classList.add("hidden");
+    }
+    QP.toast(`"${quizName}" deleted.`, "success");
+    await loadQuizzesAdmin();
+    renderDashboardStats();
+  });
+}
+
+async function exportQuizPdf(quizName, btn) {
+  await QP.withLoading(btn, async () => {
+    const data = await QP.get({ action: "admin_get_quiz", quizName, password: adminPassword });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    await QP.downloadQuizPdf({
+      quizName: data.quiz.quizName,
+      date: data.quiz.startsAt || data.quiz.createdAt,
+      items: data.quiz.questions || [],
+      includeAnswers: true,
+      includeStudentAnswers: false
+    });
+    QP.toast("Printable MCQs PDF downloaded.", "success");
+  });
+}
+
+async function exportQuizJson(quizName, btn) {
+  await QP.withLoading(btn, async () => {
+    const data = await QP.get({ action: "admin_get_quiz", quizName, password: adminPassword });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    const payload = {
+      quizName: data.quiz.quizName,
+      quizCode: data.quiz.quizCode || "",
+      totalTimeMinutes: data.quiz.totalTimeMinutes,
+      marksPerMcq: data.quiz.marksPerMcq || 1,
+      questions: data.quiz.questions || []
+    };
+    const safe = quizName.replace(/[^a-zA-Z0-9_-]/g, "_");
+    QP.download(`${safe}_mcqs.json`, JSON.stringify(payload, null, 2), "application/json");
+    QP.toast(`Downloaded ${payload.questions.length} MCQs as JSON.`, "success");
+  });
+}
+
+async function loadQuizForEdit(quizName, btn) {
+  await QP.withLoading(btn, async () => {
+    const data = await QP.get({ action: "admin_get_quiz", quizName, password: adminPassword });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    const q = data.quiz;
+    editingQuizName = q.quizName;
+    $("editingBanner").classList.remove("hidden");
+    $("editingBannerText").textContent = `Editing "${q.quizName}" (${(q.questions || []).length} MCQs). Saving will update its code, schedule and MCQs.`;
+    $("editNavBadge").classList.remove("hidden");
+    $("newQuizName").value = q.quizName;
+    $("newQuizName").readOnly = true;
+    $("newQuizCode").value = q.quizCode || makeUniqueCode(6);
+    $("newQuizMarks").value = q.marksPerMcq || 1;
+    $("newQuizTime").value = q.totalTimeMinutes || 30;
+    $("newQuizStart").value = QP.toLocalInput(q.startsAt ? new Date(q.startsAt) : new Date(QP.now()));
+    refreshCreateExpiry();
+
+    const qs = q.questions || [];
+    if (qs.length > 80) {
+      // Large quiz: load into JSON view for fast preview/re-upload
+      setMcqMode("json");
+      $("jsonFileBadge").textContent = `Loaded from "${q.quizName}"`;
+      parseJsonSource(JSON.stringify(qs), q.quizName);
+    } else {
+      setMcqMode("manual");
+      $("mcqContainer").innerHTML = "";
+      if (qs.length) qs.forEach(item => addMcqField(item)); else addMcqField();
+    }
+    showPage("createQuizPage");
+  });
+}
+
+/* ================= Reschedule Modal ================= */
+const scheduleDlg = $("scheduleDialog");
+QP.enableLightDismiss(scheduleDlg);
+let schedulingQuizName = "";
+
+function refreshEditExpiry() {
+  return updateExpiryUI($("editStart"), $("editMinutes"), $("editExpiryPreview"), $("editExpiryText"), $("editExpiryBadge"));
+}
+$("editStart").addEventListener("input", refreshEditExpiry);
+$("editMinutes").addEventListener("input", refreshEditExpiry);
+
+$("editStartPresets").addEventListener("click", e => {
+  const b = e.target.closest("[data-edit-start]");
+  if (!b) return;
+  const d = new Date(QP.now());
+  d.setSeconds(0, 0);
+  if (b.dataset.editStart === "15") d.setMinutes(d.getMinutes() + 15);
+  else if (b.dataset.editStart === "60") d.setMinutes(d.getMinutes() + 60);
+  $("editStart").value = QP.toLocalInput(d);
+  refreshEditExpiry();
+});
+
+function openScheduleModal(quizName) {
+  const q = allQuizzes.find(item => item.quizName === quizName);
+  if (!q) return;
+  schedulingQuizName = quizName;
+  $("scheduleQuizLabel").innerHTML = `Update the access code, start time and allowed duration for <strong>${esc(quizName)}</strong>. Expiry is calculated automatically.`;
+  $("editQuizCode").value = q.quizCode || "";
+  const startBase = q.startsAt && new Date(q.startsAt).getTime() > QP.now() ? new Date(q.startsAt) : new Date(QP.now());
+  startBase.setSeconds(0, 0);
+  $("editStart").value = QP.toLocalInput(startBase);
+  $("editMinutes").value = q.totalTimeMinutes || 30;
+  $("editMarks").value = q.marksPerMcq || 1;
+  refreshEditExpiry();
+  scheduleDlg.showModal();
+}
+
+$("closeScheduleDlg").addEventListener("click", () => scheduleDlg.close());
+$("cancelScheduleBtn").addEventListener("click", () => scheduleDlg.close());
+scheduleDlg.addEventListener("close", () => { scheduleDlg.returnValue = ""; });
+
+$("scheduleForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const startVal = $("editStart").value;
+  const quizCode = $("editQuizCode").value.trim().toUpperCase();
+  const totalTimeMinutes = Number($("editMinutes").value);
+  const marksPerMcq = Number($("editMarks").value) || 1;
+  if (quizCode && !/^[A-Z0-9]{3,10}$/.test(quizCode)) {
+    $("editQuizCode").focus();
+    return QP.toast("Quiz Code must be 3 to 10 letters or numbers (e.g. CS11C4).", "error");
+  }
+  if (!startVal || !(totalTimeMinutes > 0)) return QP.toast("Please enter a valid start time and allowed minutes.", "error");
+  await QP.withLoading($("saveScheduleBtn"), async () => {
+    const data = await QP.post({
+      action: "update_schedule",
+      password: adminPassword,
+      quizName: schedulingQuizName,
+      quizCode,
+      startsAt: new Date(startVal).toISOString(),
+      totalTimeMinutes,
+      marksPerMcq
+    });
+    if (data.status !== "success") return QP.toast(data.message, "error");
+    QP.clearCache();
+    scheduleDlg.close();
+    QP.toast(`Schedule updated! Auto-expires ${QP.fmtDateTime(data.expiresAt)}.`, "success", 5000);
+    await loadQuizzesAdmin();
+    renderDashboardStats();
+  });
+});
+
+/* ================= Quiz Attempts Drill-Down ================= */
+async function loadQuizAttempts(quizName, btn) {
+  currentQuizNameForAttempts = quizName;
+  renderQuizzesAdmin();
+  $("quizAttemptsCard").classList.remove("hidden");
+  $("selectedQuizTitle").innerHTML = `${icon("trophy")} Student Attempts — ${esc(quizName)}`;
+  $("selectedQuizSummary").textContent = "Loading attempts…";
+  $("attemptsBody").innerHTML = QP.skeletonRows(8, 3);
+  $("attemptSearch").value = "";
+  $("quizAttemptsCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  const run = QP.get({ action: "get_quiz_attempts", quizName, password: adminPassword }).then(data => {
+    if (data.status !== "success") {
+      $("attemptsBody").innerHTML = `<tr><td colspan="8">${QP.emptyState("Couldn't load attempts", data.message || "Please try again.", "error")}</td></tr>`;
+      return;
+    }
+    currentAttempts = (data.attempts || []).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const pcts = currentAttempts.map(a => a.totalMarks ? Math.round((a.obtainedMarks / a.totalMarks) * 100) : 0);
+    const avg = pcts.length ? Math.round(pcts.reduce((s, v) => s + v, 0) / pcts.length) : 0;
+    const high = pcts.length ? Math.max(...pcts) : 0;
+    $("selectedQuizSummary").textContent = currentAttempts.length
+      ? `${currentAttempts.length} submission${currentAttempts.length === 1 ? "" : "s"} • Avg score: ${avg}% • Highest: ${high}%`
+      : "No students have attempted this quiz yet.";
+    renderAttempts();
+  });
+  if (btn) QP.withLoading(btn, () => run);
+}
+
+function renderAttempts() {
+  const q = $("attemptSearch").value.trim().toLowerCase();
+  const list = currentAttempts
+    .map((a, idx) => ({ ...a, _idx: idx }))
+    .filter(a => !q || String(a.studentName).toLowerCase().includes(q) || String(a.studentClass).toLowerCase().includes(q));
+
+  if (!list.length) {
+    $("attemptsBody").innerHTML = `<tr><td colspan="8">${QP.emptyState("No attempts to show", q ? "No students match your filter." : "Attempts will appear here once students submit.", "history")}</td></tr>`;
+    return;
+  }
+
+  $("attemptsBody").innerHTML = list.map(a => {
+    const pct = a.totalMarks ? Math.round((a.obtainedMarks / a.totalMarks) * 100) : 0;
+    return `
+      <tr class="clickable" data-attempt-idx="${a._idx}">
+        <td data-label="Student" class="cell-strong">${esc(a.studentName)}</td>
+        <td data-label="Class">${esc(a.studentClass)}</td>
+        <td data-label="Submitted" class="cell-muted">${esc(QP.fmtDateTime(a.date))}</td>
+        <td data-label="Attempted" class="num">${a.attempted}</td>
+        <td data-label="Skipped" class="num">${a.notAttempted}</td>
+        <td data-label="Marks" class="num"><b>${a.obtainedMarks}</b> / ${a.totalMarks}</td>
+        <td data-label="Score" class="num"><span class="score-pill">${pct}%</span></td>
+        <td data-label="" class="td-actions-cell"><button type="button" class="btn btn-soft btn-sm" data-attempt-idx="${a._idx}">${icon("eye", "ic-sm")} Breakdown</button></td>
+      </tr>`;
+  }).join("");
+}
+
+$("attemptSearch").addEventListener("input", renderAttempts);
+$("attemptsBody").addEventListener("click", e => {
+  const el = e.target.closest("[data-attempt-idx]");
+  if (el) openBreakdownModal(currentAttempts[Number(el.dataset.attemptIdx)]);
+});
+
+$("exportAttemptsCsvBtn").addEventListener("click", () => {
+  if (!currentAttempts.length) return QP.toast("No attempts to export.", "info");
+  const rows = [
+    ["Quiz Name", "Student Name", "Class", "Submitted At", "Attempted", "Not Attempted", "Obtained Marks", "Total Marks", "Score %"],
+    ...currentAttempts.map(a => [
+      a.quizName || currentQuizNameForAttempts, a.studentName, a.studentClass, a.date,
+      a.attempted, a.notAttempted, a.obtainedMarks, a.totalMarks,
+      a.totalMarks ? Math.round((a.obtainedMarks / a.totalMarks) * 100) + "%" : "0%"
+    ])
+  ];
+  const safe = currentQuizNameForAttempts.replace(/[^a-zA-Z0-9_-]/g, "_");
+  QP.download(`${safe}_attempts.csv`, QP.toCSV(rows), "text/csv;charset=utf-8");
+});
+
+/* ================= Student MCQ Breakdown Modal ================= */
+const breakdownDlg = $("breakdownDialog");
+QP.enableLightDismiss(breakdownDlg);
+
+function openBreakdownModal(attempt) {
+  if (!attempt) return;
+  currentBreakdownAttempt = attempt;
+  const details = attempt.details || [];
+  const correct = attempt.correct ?? details.filter(d => d.status === "Correct").length;
+  const wrong = details.filter(d => d.status === "Wrong").length;
+  const skipped = attempt.notAttempted ?? details.filter(d => d.status === "Not Solved").length;
+  const pct = attempt.totalMarks ? Math.round((attempt.obtainedMarks / attempt.totalMarks) * 100) : 0;
+
+  $("breakdownTitle").textContent = `${attempt.studentName} (${attempt.studentClass})`;
+  $("breakdownSub").textContent = `${attempt.quizName || currentQuizNameForAttempts} • Submitted ${QP.fmtDateTime(attempt.date)}`;
+  $("breakdownStats").innerHTML = `
+    <div class="detail-box"><span>Score</span><b>${pct}% (${attempt.obtainedMarks}/${attempt.totalMarks})</b></div>
+    <div class="detail-box"><span>Correct</span><b class="text-success">${correct}</b></div>
+    <div class="detail-box"><span>Wrong</span><b class="text-danger">${wrong}</b></div>
+    <div class="detail-box"><span>Skipped</span><b class="text-warning">${skipped}</b></div>
+  `;
+  setBreakdownFilter("all");
+  breakdownDlg.showModal();
+}
+
+function setBreakdownFilter(f) {
+  breakdownFilter = f;
+  document.querySelectorAll("#breakdownFilter [data-bf]").forEach(b => b.classList.toggle("active", b.dataset.bf === f));
+  const items = (currentBreakdownAttempt?.details || []).map((d, i) => ({ ...d, n: i + 1 })).filter(d => f === "all" || d.status === f);
+  $("breakdownList").innerHTML = items.length ? items.map(d => {
+    const cls = d.status === "Correct" ? "correct" : d.status === "Wrong" ? "wrong" : "skipped";
+    return `
+      <div class="answer-item ${cls}">
+        <div class="ai-q"><span>${d.n}. ${esc(d.question)}</span>${QP.resultBadge(d.status === "Not Solved" ? "Skipped" : d.status)}</div>
+        <div class="ai-row"><b>Student answer:</b> <span class="${cls === "wrong" ? "text-danger" : ""}">${esc(d.selected)}</span></div>
+        <div class="ai-row"><b>Correct answer:</b> <span class="text-success">${esc(d.correct)}</span></div>
+      </div>`;
+  }).join("") : QP.emptyState("Nothing here", "No questions match this filter.", "check");
+}
+
+$("breakdownFilter").addEventListener("click", e => {
+  const b = e.target.closest("[data-bf]");
+  if (b) setBreakdownFilter(b.dataset.bf);
+});
+$("closeBreakdownBtn").addEventListener("click", () => breakdownDlg.close());
+$("doneBreakdownBtn").addEventListener("click", () => breakdownDlg.close());
+breakdownDlg.addEventListener("close", () => { breakdownDlg.returnValue = ""; });
+
+$("exportBreakdownCsvBtn").addEventListener("click", () => {
+  if (!currentBreakdownAttempt) return;
+  const a = currentBreakdownAttempt;
+  const rows = [
+    ["Student Name", "Class", "Question", "Selected Option", "Correct Option", "Status"],
+    ...(a.details || []).map(d => [a.studentName, a.studentClass, d.question, d.selected, d.correct, d.status]),
+    [],
+    ["Obtained Marks", `${a.obtainedMarks} / ${a.totalMarks}`]
+  ];
+  const safe = `${a.studentName}_${a.quizName || currentQuizNameForAttempts}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+  QP.download(`${safe}_breakdown.csv`, QP.toCSV(rows), "text/csv;charset=utf-8");
+});
+
+/* ================= Registered Students ================= */
+function loadStudents(btn) {
+  if (!allStudents.length) $("studentsBody").innerHTML = QP.skeletonRows(4, 4);
+  const run = QP.cachedGet({ action: "list_students", password: adminPassword }, data => {
+    if (data.status !== "success") {
+      $("studentsBody").innerHTML = `<tr><td colspan="4">${QP.emptyState("Couldn't load students", data.message || "Please try again.", "error")}</td></tr>`;
+      return;
+    }
+    allStudents = data.students || [];
+    populateClassFilter();
+    renderStudents();
+  });
+  if (btn) QP.withLoading(btn, () => run);
+  return run;
+}
+
+function populateClassFilter() {
+  const sel = $("classFilter");
+  const prev = sel.value;
+  const classes = [...new Set(allStudents.map(s => String(s.studentClass || "").trim()).filter(Boolean))].sort();
+  sel.innerHTML = `<option value="">All Classes (${classes.length})</option>` + classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  if (classes.includes(prev)) sel.value = prev;
+}
+
+function renderStudents() {
+  const q = $("studentSearch").value.trim().toLowerCase();
+  const cls = $("classFilter").value;
+  const list = allStudents.filter(s =>
+    (!cls || String(s.studentClass).trim() === cls) &&
+    (!q || String(s.studentName).toLowerCase().includes(q) || String(s.studentClass).toLowerCase().includes(q))
+  );
+  $("studentsCountBadge").textContent = list.length;
+  if (!list.length) {
+    $("studentsBody").innerHTML = `<tr><td colspan="4">${QP.emptyState("No students found", q || cls ? "Try clearing your filters." : "Registered students will appear here.", "users")}</td></tr>`;
+    return;
+  }
+  $("studentsBody").innerHTML = list.map((s, idx) => `
+    <tr>
+      <td data-label="#" class="cell-muted">${idx + 1}</td>
+      <td data-label="Student Name" class="cell-strong">${esc(s.studentName)}</td>
+      <td data-label="Class"><span class="badge badge-info badge-plain">${esc(s.studentClass)}</span></td>
+      <td data-label="Registered On" class="cell-muted">${esc(QP.fmtDateTime(s.registeredAt))}</td>
+    </tr>`).join("");
+}
+
+$("studentSearch").addEventListener("input", renderStudents);
+$("classFilter").addEventListener("change", renderStudents);
+$("exportStudentsCsvBtn").addEventListener("click", () => {
+  if (!allStudents.length) return QP.toast("No students to export.", "info");
+  const rows = [
+    ["Student Name", "Class", "Registered At"],
+    ...allStudents.map(s => [s.studentName, s.studentClass, s.registeredAt])
+  ];
+  QP.download("registered_students.csv", QP.toCSV(rows), "text/csv;charset=utf-8");
+});
+
+/* ================= Boot ================= */
+QP.initShell();
+if (adminPassword) initAdmin(); else showAuth();
+</script>
+</body>
+</html>
