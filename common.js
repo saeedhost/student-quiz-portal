@@ -49,7 +49,14 @@ const ICON_PATHS = {
   key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
   printer: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
   fileText: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
-  sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>'
+  sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  barChart: '<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+  award: '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+  wifi: '<path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
+  wifiOff: '<line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>',
+  arrowUpRight: '<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>'
 };
 
 (function injectSprite() {
@@ -255,6 +262,21 @@ const QP = (() => {
     return `${sec}s`;
   }
 
+  function attemptDurationSec(a) {
+    if (!a) return null;
+    if (typeof a.timeTakenSec === "number" && a.timeTakenSec > 0) return a.timeTakenSec;
+    if (a.startedAt && a.date) {
+      const diff = Math.round((new Date(a.date).getTime() - new Date(a.startedAt).getTime()) / 1000);
+      if (diff > 0 && diff < 86400 * 2) return diff;
+    }
+    return null;
+  }
+
+  function fmtTimeTaken(a) {
+    const sec = attemptDurationSec(a);
+    return sec !== null ? fmtDuration(sec * 1000) : "—";
+  }
+
   function fmtClock(ms) {
     const s = Math.max(0, Math.ceil(ms / 1000));
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
@@ -279,8 +301,16 @@ const QP = (() => {
   }
 
   function resultBadge(status) {
-    const cls = status === "Correct" ? "badge-active" : status === "Wrong" ? "badge-expired" : "badge-warning";
+    const cls = status === "Correct" || status === "Passed" ? "badge-active" : status === "Wrong" || status === "Failed" ? "badge-expired" : "badge-warning";
     return `<span class="badge ${cls}">${esc(status)}</span>`;
+  }
+
+  function isAttemptPassed(a, defaultPassPct = 50) {
+    if (!a) return false;
+    if (typeof a.passed === "boolean") return a.passed;
+    const pct = a.totalMarks ? (a.obtainedMarks / a.totalMarks) * 100 : 0;
+    const req = a.passingPercent !== undefined ? Number(a.passingPercent) : defaultPassPct;
+    return pct >= req;
   }
 
   function download(filename, content, mime = "text/plain") {
@@ -308,6 +338,13 @@ const QP = (() => {
     return out;
   }
 
+  function buildQuizShareUrl(quizName, quizCode = "") {
+    const base = new URL("index.html", window.location.href);
+    base.searchParams.set("quiz", quizName);
+    if (quizCode) base.searchParams.set("code", quizCode);
+    return base.toString();
+  }
+
   /* ---------- Printable PDF generator (lazy-loads jsPDF, falls back to clean browser print) ---------- */
   let jsPdfPromise = null;
   function loadJsPdf() {
@@ -325,13 +362,26 @@ const QP = (() => {
     return jsPdfPromise;
   }
 
-  function openPrintFallback({ quizName, subtitle, items, includeAnswers, includeStudentAnswers }) {
+  function ensurePrintSheet() {
     let sheet = document.getElementById("printSheet");
     if (!sheet) {
       sheet = document.createElement("div");
       sheet.id = "printSheet";
       document.body.appendChild(sheet);
     }
+    return sheet;
+  }
+
+  function triggerBrowserPrint() {
+    document.body.classList.add("printing-sheet");
+    const cleanup = () => document.body.classList.remove("printing-sheet");
+    window.addEventListener("afterprint", cleanup, { once: true });
+    setTimeout(() => window.print(), 60);
+    setTimeout(cleanup, 2500);
+  }
+
+  function openPrintFallback({ quizName, subtitle, items, includeAnswers, includeStudentAnswers }) {
+    const sheet = ensurePrintSheet();
     sheet.innerHTML = `
       <div class="ps-head">
         <h1>${esc(quizName || "Quiz MCQs")}</h1>
@@ -343,13 +393,10 @@ const QP = (() => {
           ${Array.isArray(it.options) && it.options.length ? `<ul class="ps-opts">${it.options.map((o, k) => `<li><strong>${String.fromCharCode(65 + k)}.</strong> ${esc(o)}</li>`).join("")}</ul>` : ""}
           ${includeStudentAnswers && it.selected ? `<div style="font-size:9.5pt;color:#334155">Your Answer: <strong>${esc(it.selected)}</strong>${it.status ? ` (${esc(it.status)})` : ""}</div>` : ""}
           ${includeAnswers && it.correct ? `<div class="ps-ans">Correct Answer: <strong>${esc(it.correct)}</strong></div>` : ""}
+          ${includeAnswers && it.explanation ? `<div style="font-size:9pt;color:#475569;margin-top:3px"><em>Explanation:</em> ${esc(it.explanation)}</div>` : ""}
         </div>`).join("")}
     `;
-    document.body.classList.add("printing-sheet");
-    const cleanup = () => document.body.classList.remove("printing-sheet");
-    window.addEventListener("afterprint", cleanup, { once: true });
-    setTimeout(() => window.print(), 60);
-    setTimeout(cleanup, 2500);
+    triggerBrowserPrint();
   }
 
   async function downloadQuizPdf({
@@ -357,6 +404,7 @@ const QP = (() => {
     studentName = "",
     studentClass = "",
     date = "",
+    timeTaken = "",
     obtainedMarks = null,
     totalMarks = null,
     items = [],
@@ -368,8 +416,9 @@ const QP = (() => {
     const subtitle = [];
     if (studentName) subtitle.push(`Student: ${studentName}${studentClass ? " (" + studentClass + ")" : ""}`);
     if (date) subtitle.push(`Date: ${fmtDateTime(date)}`);
+    if (timeTaken && timeTaken !== "—") subtitle.push(`Time Taken: ${timeTaken}`);
     subtitle.push(`Total MCQs: ${items.length}`);
-    if (includeAnswers && obtainedMarks !== null && totalMarks !== null) {
+    if (obtainedMarks !== null && totalMarks !== null && (includeAnswers || includeStudentAnswers)) {
       const pct = totalMarks ? Math.round((obtainedMarks / totalMarks) * 100) : 0;
       subtitle.push(`Score: ${obtainedMarks} / ${totalMarks} (${pct}%)`);
     }
@@ -431,6 +480,7 @@ const QP = (() => {
       optBlocks.forEach(lines => { blockH += lines.length * 4.5 + 1; });
       if (includeStudentAnswers && it.selected) blockH += 5.5;
       if (includeAnswers && it.correct) blockH += 5.5;
+      if (includeAnswers && it.explanation) blockH += 6;
       blockH += 5;
 
       ensureSpace(Math.min(blockH, ph - 36));
@@ -473,6 +523,16 @@ const QP = (() => {
         y += corLines.length * 4.6 + 0.5;
       }
 
+      if (includeAnswers && it.explanation) {
+        const expLines = doc.splitTextToSize(`Explanation: ${it.explanation}`, maxW - 6);
+        ensureSpace(expLines.length * 4.4 + 1);
+        doc.setTextColor(71, 85, 105);
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(8.9);
+        doc.text(expLines, margin + 4, y);
+        y += expLines.length * 4.4 + 0.5;
+      }
+
       y += 2;
       doc.setDrawColor(226, 232, 240);
       doc.line(margin, y, pw - margin, y);
@@ -492,6 +552,176 @@ const QP = (() => {
 
     const safe = String(quizName || "Quiz").replace(/[^a-zA-Z0-9_-]/g, "_");
     doc.save(`${safe}_${includeAnswers ? "MCQs_Answers" : "MCQs_Practice"}.pdf`);
+  }
+
+  /* ---------- Printable Class Merit List / Result Sheet PDF ---------- */
+  async function downloadMeritListPdf({
+    quizName = "Quiz",
+    targetClass = "All Classes",
+    passingPercent = 50,
+    attempts = []
+  }) {
+    if (!attempts.length) { toast("No student attempts available to export.", "warning"); return; }
+
+    // Rank by obtainedMarks DESC, then faster timeTakenSec ASC
+    const ranked = [...attempts].sort((a, b) => {
+      if ((b.obtainedMarks || 0) !== (a.obtainedMarks || 0)) return (b.obtainedMarks || 0) - (a.obtainedMarks || 0);
+      const ta = attemptDurationSec(a) ?? 999999;
+      const tb = attemptDurationSec(b) ?? 999999;
+      return ta - tb;
+    });
+
+    const pcts = ranked.map(a => a.totalMarks ? Math.round((a.obtainedMarks / a.totalMarks) * 100) : 0);
+    const avg = Math.round(pcts.reduce((s, v) => s + v, 0) / pcts.length);
+    const high = Math.max(...pcts);
+    const passCount = ranked.filter(a => isAttemptPassed(a, passingPercent)).length;
+    const passRate = Math.round((passCount / ranked.length) * 100);
+    const subtitle = [
+      `Class: ${targetClass || "All Classes"}`,
+      `Students: ${ranked.length}`,
+      `Highest: ${high}%`,
+      `Average: ${avg}%`,
+      `Pass Rate (≥${passingPercent}%): ${passCount}/${ranked.length} (${passRate}%)`,
+      `Generated: ${fmtDateTime(new Date().toISOString())}`
+    ];
+
+    let jsPDF;
+    try {
+      jsPDF = await loadJsPdf();
+    } catch (e) {
+      const sheet = ensurePrintSheet();
+      sheet.innerHTML = `
+        <div class="ps-head">
+          <h1>${esc(quizName)} — Class Merit List</h1>
+          <div class="ps-meta">${subtitle.map(s => `<span>${esc(s)}</span>`).join("")}</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:9.5pt">
+          <thead>
+            <tr style="border-bottom:2px solid #0f172a">
+              <th style="padding:5px">Rank</th><th style="padding:5px">Student</th><th style="padding:5px">Class</th>
+              <th style="padding:5px">Correct</th><th style="padding:5px">Wrong</th><th style="padding:5px">Skip</th>
+              <th style="padding:5px">Time</th><th style="padding:5px">Marks</th><th style="padding:5px">Score</th><th style="padding:5px">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ranked.map((a, idx) => {
+        const pct = pcts[idx];
+        const pass = isAttemptPassed(a, passingPercent);
+        const wrong = a.wrong ?? (a.details || []).filter(d => d.status === "Wrong").length;
+        return `<tr style="border-bottom:1px solid #cbd5e1">
+                <td style="padding:5px;font-weight:700">#${idx + 1}</td>
+                <td style="padding:5px">${esc(a.studentName)}${a.username ? " (@" + esc(a.username) + ")" : ""}</td>
+                <td style="padding:5px">${esc(a.studentClass)}</td>
+                <td style="padding:5px">${a.correct ?? "—"}</td>
+                <td style="padding:5px">${wrong}</td>
+                <td style="padding:5px">${a.notAttempted ?? 0}</td>
+                <td style="padding:5px">${esc(fmtTimeTaken(a))}</td>
+                <td style="padding:5px;font-weight:700">${a.obtainedMarks}/${a.totalMarks}</td>
+                <td style="padding:5px">${pct}%</td>
+                <td style="padding:5px;font-weight:700">${pass ? "PASS" : "FAIL"}</td>
+              </tr>`;
+      }).join("")}
+          </tbody>
+        </table>`;
+      triggerBrowserPrint();
+      return;
+    }
+
+    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    const margin = 12;
+    const maxW = pw - margin * 2;
+    let y = 15;
+
+    doc.setFillColor(15, 23, 42);
+    doc.roundedRect(margin, y - 5, maxW, 20, 3, 3, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13.5);
+    doc.text(doc.splitTextToSize(`${quizName} — Class Merit List`, maxW - 10)[0], margin + 5, y + 3);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.8);
+    doc.text("QuizPortal Official Result & Ranking Sheet", margin + 5, y + 10);
+    y += 21;
+
+    doc.setTextColor(51, 65, 85);
+    doc.setFontSize(9);
+    const metaLines = doc.splitTextToSize(subtitle.join("   |   "), maxW);
+    doc.text(metaLines, margin, y);
+    y += metaLines.length * 4.6 + 4;
+
+    const cols = [
+      { label: "Rank", x: margin, w: 13 },
+      { label: "Student Name", x: margin + 13, w: 54 },
+      { label: "Class", x: margin + 67, w: 28 },
+      { label: "C / W / S", x: margin + 95, w: 23 },
+      { label: "Time", x: margin + 118, w: 20 },
+      { label: "Marks", x: margin + 138, w: 21 },
+      { label: "%", x: margin + 159, w: 13 },
+      { label: "Result", x: margin + 172, w: 14 }
+    ];
+
+    const drawTableHead = () => {
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, y - 4, maxW, 8, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.2);
+      doc.setTextColor(51, 65, 85);
+      cols.forEach(c => doc.text(c.label, c.x + 1.5, y + 1));
+      y += 7;
+    };
+    drawTableHead();
+
+    ranked.forEach((a, idx) => {
+      if (y > ph - 18) { doc.addPage(); y = 16; drawTableHead(); }
+      const pct = pcts[idx];
+      const pass = isAttemptPassed(a, passingPercent);
+      const wrong = a.wrong ?? (a.details || []).filter(d => d.status === "Wrong").length;
+      const cor = a.correct ?? (a.details || []).filter(d => d.status === "Correct").length;
+      const skp = a.notAttempted ?? 0;
+
+      if (idx % 2 === 1) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(margin, y - 4, maxW, 7, "F");
+      }
+      doc.setFont("helvetica", idx < 3 ? "bold" : "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`#${idx + 1}`, cols[0].x + 1.5, y + 0.8);
+
+      const stuLabel = String(a.studentName || "") + (a.username ? ` (@${a.username})` : "");
+      doc.text(doc.splitTextToSize(stuLabel, cols[1].w - 3)[0], cols[1].x + 1.5, y + 0.8);
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(71, 85, 105);
+      doc.text(doc.splitTextToSize(String(a.studentClass || ""), cols[2].w - 2)[0], cols[2].x + 1.5, y + 0.8);
+      doc.text(`${cor} / ${wrong} / ${skp}`, cols[3].x + 1.5, y + 0.8);
+      doc.text(fmtTimeTaken(a), cols[4].x + 1.5, y + 0.8);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(15, 23, 42);
+      doc.text(`${a.obtainedMarks}/${a.totalMarks}`, cols[5].x + 1.5, y + 0.8);
+      doc.text(`${pct}%`, cols[6].x + 1.5, y + 0.8);
+
+      doc.setTextColor(pass ? 4 : 185, pass ? 120 : 28, pass ? 87 : 28);
+      doc.text(pass ? "PASS" : "FAIL", cols[7].x + 1.5, y + 0.8);
+
+      y += 7;
+    });
+
+    const pages = doc.getNumberOfPages();
+    for (let p = 1; p <= pages; p++) {
+      doc.setPage(p);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`QuizPortal Merit List • ${String(quizName).slice(0, 50)}`, margin, ph - 8);
+      doc.text(`Page ${p} of ${pages}`, pw - margin, ph - 8, { align: "right" });
+    }
+
+    const safe = String(quizName || "Quiz").replace(/[^a-zA-Z0-9_-]/g, "_");
+    doc.save(`${safe}_Merit_List.pdf`);
   }
 
   function skeletonRows(cols, rows = 4) {
@@ -544,8 +774,8 @@ const QP = (() => {
 
   return {
     CLASSES, icon, sleep, now, get, post, cachedGet, clearCache, esc, toast, withLoading, hidePreloader,
-    confirmDialog, enableLightDismiss, fmtDateTime, fmtDuration, fmtClock, toLocalInput, initials,
-    statusBadge, resultBadge, download, toCSV, uid, generateQuizCode, downloadQuizPdf,
-    skeletonRows, emptyState, initShell
+    confirmDialog, enableLightDismiss, fmtDateTime, fmtDuration, attemptDurationSec, fmtTimeTaken, fmtClock,
+    toLocalInput, initials, statusBadge, resultBadge, isAttemptPassed, download, toCSV, uid, generateQuizCode,
+    buildQuizShareUrl, downloadQuizPdf, downloadMeritListPdf, skeletonRows, emptyState, initShell
   };
 })();

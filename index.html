@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://script.google.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body class="no-select">
 
@@ -61,15 +61,15 @@
         </div>
         <div class="form-group">
           <label for="regUsername">Username * <span class="muted">(unique, no spaces)</span></label>
-          <div class="input-icon"><svg class="ic"><use href="#i-key"/></svg><input type="text" id="regUsername" autocomplete="username" placeholder="e.g. ali_khan9" minlength="3" maxlength="24" required /></div>
+          <div class="input-icon"><svg class="ic"><use href="#i-key"/></svg><input type="text" id="regUsername" name="username" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="e.g. ali_khan9" minlength="3" maxlength="24" required /></div>
           <p class="hint">3–24 characters. Letters, numbers, dots, underscores, or hyphens — no spaces.</p>
         </div>
         <div class="form-group">
           <label for="regPassword">Password *</label>
           <div class="input-icon" style="display:flex;align-items:center">
             <svg class="ic"><use href="#i-lock"/></svg>
-            <input type="password" id="regPassword" autocomplete="new-password" placeholder="Create a password (min 4 chars)" minlength="4" required style="padding-right:2.75rem" />
-            <button type="button" class="toggle-pass-btn" data-toggle-pass="regPassword" aria-label="Show password" style="position:absolute;right:.5rem;background:none;border:0;color:var(--muted);padding:.35rem;border-radius:6px;display:grid;place-items:center"><svg class="ic ic-sm"><use href="#i-eye"/></svg></button>
+            <input type="password" id="regPassword" name="password" autocomplete="new-password" placeholder="Create a password (min 4 chars)" minlength="4" required style="padding-right:2.75rem" />
+            <button type="button" class="toggle-pass-btn" data-toggle-pass="regPassword" aria-pressed="false" aria-label="Show password" style="position:absolute;right:.5rem;background:none;border:0;color:var(--muted);padding:.35rem;border-radius:6px;display:grid;place-items:center"><svg class="ic ic-sm"><use href="#i-eye"/></svg></button>
           </div>
         </div>
         <div class="form-group">
@@ -91,15 +91,15 @@
       <form id="loginForm" class="mt-2 hidden" novalidate>
         <div class="form-group">
           <label for="loginUsername">Username *</label>
-          <div class="input-icon"><svg class="ic"><use href="#i-user"/></svg><input type="text" id="loginUsername" autocomplete="username" placeholder="e.g. ali_khan9" required /></div>
+          <div class="input-icon"><svg class="ic"><use href="#i-user"/></svg><input type="text" id="loginUsername" name="username" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="e.g. ali_khan9" required /></div>
           <p class="hint">No spaces allowed.</p>
         </div>
         <div class="form-group">
           <label for="loginPassword">Password *</label>
           <div class="input-icon" style="display:flex;align-items:center">
             <svg class="ic"><use href="#i-lock"/></svg>
-            <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Enter your password" required style="padding-right:2.75rem" />
-            <button type="button" class="toggle-pass-btn" data-toggle-pass="loginPassword" aria-label="Show password" style="position:absolute;right:.5rem;background:none;border:0;color:var(--muted);padding:.35rem;border-radius:6px;display:grid;place-items:center"><svg class="ic ic-sm"><use href="#i-eye"/></svg></button>
+            <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="Enter your password" required style="padding-right:2.75rem" />
+            <button type="button" class="toggle-pass-btn" data-toggle-pass="loginPassword" aria-pressed="false" aria-label="Show password" style="position:absolute;right:.5rem;background:none;border:0;color:var(--muted);padding:.35rem;border-radius:6px;display:grid;place-items:center"><svg class="ic ic-sm"><use href="#i-eye"/></svg></button>
           </div>
         </div>
         <button type="submit" class="btn btn-primary btn-lg btn-block">Sign in <svg class="ic"><use href="#i-right"/></svg></button>
@@ -121,6 +121,8 @@
       <button type="button" class="nav-item active" data-page="upcomingPage"><svg class="ic"><use href="#i-book"/></svg> Available Quizzes</button>
       <button type="button" class="nav-item hidden" id="resumeNav" data-page="quizEnginePage"><svg class="ic"><use href="#i-play"/></svg> Resume Quiz <span class="nav-badge" id="navTimer">--:--</span></button>
       <button type="button" class="nav-item" data-page="myQuizzesPage"><svg class="ic"><use href="#i-history"/></svg> My Results</button>
+      <div class="nav-label">Account</div>
+      <button type="button" class="nav-item" id="openProfileBtn"><svg class="ic"><use href="#i-lock"/></svg> Account &amp; Password</button>
     </nav>
     <div class="sidebar-footer">
       <div class="user-chip">
@@ -140,6 +142,7 @@
         <div class="page-sub" id="pageSub">Pick an active quiz to begin</div>
       </div>
       <div class="topbar-actions">
+        <span class="conn-pill" id="connBadge" role="status" aria-live="polite">Online</span>
         <button type="button" class="btn btn-outline btn-sm" id="refreshBtn" title="Refresh"><svg class="ic ic-sm"><use href="#i-refresh"/></svg><span class="hide-sm">Refresh</span></button>
       </div>
     </header>
@@ -207,37 +210,47 @@
 
             <div class="mcq-timer-bar mt-2" id="mcqTimerBarWrap" aria-hidden="true"><span id="mcqTimerBar" style="width:100%"></span></div>
 
+            <div class="skipped-round-banner hidden" id="skippedRoundBanner" role="status" aria-live="polite">
+              <div class="srb-left">
+                <svg class="ic ic-sm" aria-hidden="true"><use href="#i-refresh"/></svg>
+                <span id="skippedRoundText">Solving Skipped MCQs</span>
+              </div>
+              <span class="badge badge-warning badge-plain" id="skippedRoundBadge">1 remaining</span>
+            </div>
+
             <div class="q-number">
               <span id="qNumber">Question 1 of 1</span>
               <span class="bonus-pill hidden" id="bonusPill"><svg class="ic ic-sm"><use href="#i-zap"/></svg> <span id="bonusText"></span></span>
             </div>
-            <h3 class="q-text" id="qText"></h3>
+            <h3 class="q-text" id="qText" tabindex="-1"></h3>
             <div class="options" id="qOptions" role="group" aria-labelledby="qText"></div>
 
             <div class="quiz-nav">
               <button type="button" class="btn btn-ghost" id="clearBtn"><svg class="ic ic-sm"><use href="#i-x"/></svg> Clear choice</button>
               <span class="spacer"></span>
-              <button type="button" class="btn btn-outline" id="skipBtn">Skip MCQ <svg class="ic ic-sm"><use href="#i-right"/></svg></button>
-              <button type="button" class="btn btn-primary" id="nextBtn">Save &amp; Next <svg class="ic"><use href="#i-right"/></svg></button>
-              <button type="button" class="btn btn-success hidden" id="finishBtn"><svg class="ic"><use href="#i-check"/></svg> Finish Last MCQ</button>
+              <button type="button" class="btn btn-outline hidden" id="leaveSkippedBtn">Review Summary</button>
+              <button type="button" class="btn btn-outline" id="skipBtn"><span id="skipBtnLabel">Skip for Later</span> <svg class="ic ic-sm"><use href="#i-right"/></svg></button>
+              <button type="button" class="btn btn-primary" id="nextBtn"><span id="nextBtnLabel">Save &amp; Next</span> <svg class="ic ic-sm"><use href="#i-right"/></svg></button>
+              <button type="button" class="btn btn-success hidden" id="finishBtn"><svg class="ic ic-sm"><use href="#i-check"/></svg> <span id="finishBtnLabel">Save &amp; Finish</span></button>
             </div>
-            <p class="kbd-hint">Unused seconds from each MCQ are automatically added to the remaining MCQs. Press <kbd>A</kbd>–<kbd>D</kbd> to choose, <kbd>Enter</kbd> for next.</p>
+            <p class="kbd-hint" id="kbdHint">Hard MCQ? Click <b>Skip for Later</b> to return to it after finishing the rest. Press <kbd>A</kbd>–<kbd>D</kbd> to choose, <kbd>Enter</kbd> to save &amp; continue.</p>
           </div>
 
           <!-- Ready-to-submit summary card (shown after final MCQ is done) -->
           <div class="card question-card mb-0 hidden" id="readySubmitStage">
             <div style="text-align:center;padding:1rem 0 .5rem">
-              <div class="empty-ic" style="margin:0 auto 1rem;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--success-50);color:var(--success)">
-                <svg class="ic ic-lg"><use href="#i-check"/></svg>
+              <div class="empty-ic" id="readyIconWrap" style="margin:0 auto 1rem;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--success-50);color:var(--success)">
+                <svg class="ic ic-lg" id="readyIconSvg"><use href="#i-check"/></svg>
               </div>
-              <h3 style="font-size:1.35rem;margin-bottom:.35rem">All MCQs Completed!</h3>
-              <p class="muted" style="max-width:440px;margin:0 auto">All your answers have been collected on this device. Click the button below to submit everything at once and see your result.</p>
+              <h3 id="readyHeading" style="font-size:1.35rem;margin-bottom:.35rem">All MCQs Completed!</h3>
+              <p class="muted" id="readySub" style="max-width:460px;margin:0 auto">All your answers have been collected on this device. Click the button below to submit everything at once and see your result.</p>
             </div>
             <div class="details-grid mt-3">
               <div class="detail-box"><span>Total MCQs</span><b id="readyTotal">0</b></div>
               <div class="detail-box"><span>Answered</span><b class="text-success" id="readyAnswered">0</b></div>
               <div class="detail-box"><span>Skipped</span><b class="text-warning" id="readySkipped">0</b></div>
             </div>
+            <button type="button" class="btn btn-primary btn-lg btn-block mt-2 hidden" id="solveSkippedBtn"><svg class="ic"><use href="#i-refresh"/></svg> <span id="solveSkippedBtnLabel">Solve Skipped MCQs</span></button>
             <button type="button" class="btn btn-success btn-lg btn-block mt-2" id="finalSubmitBtn"><svg class="ic"><use href="#i-send"/></svg> Submit All Answers</button>
           </div>
 
@@ -265,7 +278,10 @@
           <div class="result-hero">
             <div class="score-ring" id="scoreRing"><div><b id="resPct">0%</b><span>Score</span></div></div>
             <div>
-              <span class="badge badge-info badge-plain" id="resQuizName">Quiz</span>
+              <div class="flex items-center gap-1 wrap">
+                <span class="badge badge-info badge-plain" id="resQuizName">Quiz</span>
+                <span id="resPassBadge"></span>
+              </div>
               <h2 id="resHeadline" style="margin:.5rem 0 .25rem;font-size:1.5rem;letter-spacing:-.02em">Quiz completed!</h2>
               <p class="muted" id="resDate"></p>
               <div class="result-stats">
@@ -273,6 +289,7 @@
                 <div><span>Correct</span><b class="text-success" id="resCorrect">0</b></div>
                 <div><span>Wrong</span><b class="text-danger" id="resWrong">0</b></div>
                 <div><span>Skipped</span><b class="text-warning" id="resSkipped">0</b></div>
+                <div><span>Time Taken</span><b id="resTimeTaken">—</b></div>
               </div>
             </div>
           </div>
@@ -281,6 +298,11 @@
             <button type="button" class="btn btn-outline" data-goto="upcomingPage"><svg class="ic"><use href="#i-book"/></svg> Back to quizzes</button>
             <button type="button" class="btn btn-outline" data-goto="myQuizzesPage"><svg class="ic"><use href="#i-history"/></svg> All my results</button>
           </div>
+        </div>
+
+        <div id="answersLockedBanner" class="banner banner-info hidden">
+          <svg class="ic"><use href="#i-lock"/></svg>
+          <span id="answersLockedText">Correct answers and explanations will unlock automatically after the quiz window closes.</span>
         </div>
 
         <div class="card">
@@ -310,7 +332,7 @@
           </div>
           <div class="table-wrap" tabindex="0" role="region" aria-labelledby="histTitle">
             <table class="stack">
-              <thead><tr><th>Quiz</th><th>Date</th><th class="num">Attempted</th><th class="num">Skipped</th><th class="num">Marks</th><th class="num">Score</th><th>Actions</th></tr></thead>
+              <thead><tr><th scope="col">Quiz</th><th scope="col">Date</th><th scope="col" class="num">Time</th><th scope="col" class="num">Attempted</th><th scope="col" class="num">Skipped</th><th scope="col" class="num">Marks</th><th scope="col" class="num">Score</th><th scope="col">Actions</th></tr></thead>
               <tbody id="myQuizzesBody"></tbody>
             </table>
           </div>
@@ -336,15 +358,15 @@
         <label for="startCodeInput">Quiz Access Code *</label>
         <div class="input-icon">
           <svg class="ic"><use href="#i-key"/></svg>
-          <input type="text" id="startCodeInput" class="code-input" minlength="3" maxlength="10" placeholder="Enter teacher's quiz code (e.g. CS11C4)" autocomplete="off" />
+          <input type="text" id="startCodeInput" class="code-input" minlength="3" maxlength="10" placeholder="Enter teacher's quiz code (e.g. CS11C4)" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" />
         </div>
         <p class="hint" id="startCodeError" style="color:var(--danger);font-weight:600;display:none"></p>
       </div>
 
-      <ul class="muted" style="padding-left:1.1rem;font-size:.85rem;display:grid;gap:.3rem">
+      <ul class="muted" id="startRulesList" style="padding-left:1.1rem;font-size:.85rem;display:grid;gap:.3rem">
         <li>Each MCQ has its own timer plus an overall quiz timer.</li>
         <li>Solve an MCQ early and its unused seconds are added to the remaining MCQs!</li>
-        <li>If an MCQ’s time ends before you solve it, it is marked as <b>Skipped</b>.</li>
+        <li>Tough question? Click <b>Skip for Later</b> — once you finish the rest, skipped MCQs reopen so you can solve them until the overall timer ends.</li>
         <li>All answers are saved on your device and submitted together when you finish.</li>
       </ul>
     </div>
@@ -366,15 +388,15 @@
     <div class="modal-body">
       <p class="muted mb-2" id="pdfQuizSubtitle" style="font-size:.9rem">Choose what to include in your printable PDF.</p>
       <div class="options" id="pdfModeList">
-        <label class="option-btn selected" style="cursor:pointer;margin:0">
-          <input type="radio" name="pdfMode" value="with_answers" checked style="width:18px;height:18px;accent-color:var(--primary)" />
+        <label class="option-btn selected" id="pdfWithAnswersOption" style="cursor:pointer;margin:0">
+          <input type="radio" name="pdfMode" value="with_answers" id="pdfModeWithAnswers" checked style="width:18px;height:18px;accent-color:var(--primary)" />
           <div class="opt-text">
             <strong>MCQs with Answers &amp; Score</strong>
-            <div class="muted" style="font-size:.8rem;font-weight:400">Includes questions, options, your answers, correct answers &amp; score.</div>
+            <div class="muted" id="pdfWithAnswersDesc" style="font-size:.8rem;font-weight:400">Includes questions, options, your answers, correct answers, explanations &amp; score.</div>
           </div>
         </label>
-        <label class="option-btn" style="cursor:pointer;margin:0">
-          <input type="radio" name="pdfMode" value="questions_only" style="width:18px;height:18px;accent-color:var(--primary)" />
+        <label class="option-btn" id="pdfQuestionsOnlyOption" style="cursor:pointer;margin:0">
+          <input type="radio" name="pdfMode" value="questions_only" id="pdfModeQuestionsOnly" style="width:18px;height:18px;accent-color:var(--primary)" />
           <div class="opt-text">
             <strong>Practice Sheet (Questions Only)</strong>
             <div class="muted" style="font-size:.8rem;font-weight:400">Clean printable MCQs without answers so you can print &amp; practice.</div>
@@ -389,7 +411,41 @@
   </div>
 </dialog>
 
-<script src="common.js?v=5"></script>
+<!-- ============ STUDENT PROFILE & PASSWORD MODAL ============ -->
+<dialog id="profileDialog" class="modal modal-sm" closedby="any" aria-labelledby="profileDlgTitle">
+  <form method="dialog" id="changePassForm" class="modal-box" novalidate>
+    <div class="modal-header">
+      <div class="modal-icon"><svg class="ic"><use href="#i-user"/></svg></div>
+      <h1 id="profileDlgTitle" style="font-size:1.1rem;flex:1">My Account &amp; Password</h1>
+      <button type="button" class="btn btn-ghost btn-icon" id="closeProfileDlg" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="details-grid" id="profileInfoGrid"></div>
+      <div class="form-group">
+        <label for="curPassInput">Current Password *</label>
+        <div class="input-icon" style="display:flex;align-items:center">
+          <svg class="ic"><use href="#i-lock"/></svg>
+          <input type="password" id="curPassInput" name="currentPassword" autocomplete="current-password" placeholder="Enter your current password" required style="padding-right:2.75rem" />
+          <button type="button" class="toggle-pass-btn" data-toggle-pass="curPassInput" aria-pressed="false" aria-label="Show password" style="position:absolute;right:.5rem;background:none;border:0;color:var(--muted);padding:.35rem;border-radius:6px;display:grid;place-items:center"><svg class="ic ic-sm"><use href="#i-eye"/></svg></button>
+        </div>
+      </div>
+      <div class="form-group mb-0">
+        <label for="newPassInput">New Password * <span class="muted">(min 4 chars)</span></label>
+        <div class="input-icon" style="display:flex;align-items:center">
+          <svg class="ic"><use href="#i-key"/></svg>
+          <input type="password" id="newPassInput" name="newPassword" autocomplete="new-password" minlength="4" placeholder="Enter a new password" required style="padding-right:2.75rem" />
+          <button type="button" class="toggle-pass-btn" data-toggle-pass="newPassInput" aria-pressed="false" aria-label="Show password" style="position:absolute;right:.5rem;background:none;border:0;color:var(--muted);padding:.35rem;border-radius:6px;display:grid;place-items:center"><svg class="ic ic-sm"><use href="#i-eye"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" id="cancelProfileBtn">Cancel</button>
+      <button type="submit" class="btn btn-primary" id="savePassBtn"><svg class="ic ic-sm"><use href="#i-save"/></svg> Update Password</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="common.js?v=7"></script>
 <script>
 const { icon, esc } = QP;
 const $ = id => document.getElementById(id);
@@ -402,6 +458,52 @@ let listSignature = "";
 let lastResult = null;
 let resultFilter = "all";
 let pdfTargetResult = null;
+
+// Capture one-click share link (?quiz=...&code=...) before login/registration
+(function captureQuizInvite() {
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    const q = sp.get("quiz");
+    if (q) {
+      sessionStorage.setItem("qp_invite", JSON.stringify({ quiz: q.trim(), code: (sp.get("code") || "").trim().toUpperCase() }));
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+      }
+    }
+  } catch (e) { /* ignore */ }
+})();
+
+/* ================= Live Online / Offline Connection Status ================= */
+function updateConnectionBadge(announce = false) {
+  const online = navigator.onLine !== false;
+  const badge = $("connBadge");
+  if (badge) {
+    badge.classList.toggle("offline", !online);
+    badge.textContent = online ? "Online" : "Offline — saved locally";
+  }
+  if (!online && announce) {
+    QP.toast("You are offline. Keep going — your answers are safely stored on this device.", "warning", 4500);
+  } else if (online && announce) {
+    QP.toast("Back online!", "success", 2400);
+    if (session && session.status === "pending_submit" && !submitting) {
+      setTimeout(() => submitSession(true), 400);
+    }
+  }
+}
+window.addEventListener("online", () => updateConnectionBadge(true));
+window.addEventListener("offline", () => updateConnectionBadge(true));
+
+/* ================= Tab-Switch / Focus-Loss Anti-Cheat Counter ================= */
+document.addEventListener("visibilitychange", () => {
+  if (!session || (session.status !== "in_progress" && session.status !== "ready_to_submit")) return;
+  if ($("quizEnginePage").classList.contains("hidden") || session.trackTabSwitches === false) return;
+  if (document.visibilityState === "hidden") {
+    session.tabSwitches = (session.tabSwitches || 0) + 1;
+    saveSession();
+  } else if (document.visibilityState === "visible" && session.tabSwitches > 0) {
+    QP.toast(`Warning #${session.tabSwitches}: Switching tabs or leaving the quiz screen is recorded for your teacher.`, "warning", 4200);
+  }
+});
 
 const PAGES = {
   upcomingPage: ["Available Quizzes", "Pick an active quiz and enter its access code to begin"],
@@ -476,7 +578,50 @@ document.querySelectorAll("[data-toggle-pass]").forEach(btn => {
     const inp = $(btn.dataset.togglePass);
     const show = inp.type === "password";
     inp.type = show ? "text" : "password";
+    btn.setAttribute("aria-pressed", String(show));
     btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+  });
+});
+
+/* ================= Student Profile & Password Change Modal ================= */
+const profileDlg = $("profileDialog");
+QP.enableLightDismiss(profileDlg);
+
+$("openProfileBtn").addEventListener("click", () => {
+  if (!currentStudent) return;
+  $("profileInfoGrid").innerHTML = `
+    <div class="detail-box"><span>Name</span><b>${esc(currentStudent.studentName)}</b></div>
+    <div class="detail-box"><span>Username</span><b>${currentStudent.username ? "@" + esc(currentStudent.username) : "—"}</b></div>
+    <div class="detail-box"><span>Class</span><b>${esc(currentStudent.studentClass)}</b></div>
+  `;
+  $("curPassInput").value = "";
+  $("newPassInput").value = "";
+  profileDlg.showModal();
+});
+$("closeProfileDlg").addEventListener("click", () => profileDlg.close());
+$("cancelProfileBtn").addEventListener("click", () => profileDlg.close());
+profileDlg.addEventListener("close", () => { profileDlg.returnValue = ""; });
+
+$("changePassForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!currentStudent?.username) return QP.toast("Only username accounts can update passwords.", "warning");
+  const currentPassword = $("curPassInput").value;
+  const newPassword = $("newPassInput").value;
+  if (!currentPassword) { $("curPassInput").focus(); return QP.toast("Enter your current password.", "error"); }
+  if (newPassword.length < 4) { $("newPassInput").focus(); return QP.toast("New password must be at least 4 characters.", "error"); }
+
+  await QP.withLoading($("savePassBtn"), async () => {
+    const data = await QP.post({
+      action: "change_student_password",
+      username: currentStudent.username,
+      currentPassword,
+      newPassword
+    });
+    if (data.status !== "success") return QP.toast(data.message || "Could not update password.", "error");
+    $("curPassInput").value = "";
+    $("newPassInput").value = "";
+    profileDlg.close();
+    QP.toast("Your password has been updated!", "success");
   });
 });
 
@@ -599,8 +744,16 @@ function loadSession() {
         options: q.options || [],
         selected: old[i] ?? null,
         status: old[i] ? "answered" : "pending",
+        skippedByUser: false,
         correct: q.correct
       }));
+    } else {
+      s.answers.forEach(a => {
+        if (a && a.skippedByUser === undefined) a.skippedByUser = a.status === "skipped";
+      });
+    }
+    if (!s.phase) {
+      s.phase = s.answers.some(a => a.status === "pending") ? "initial" : "review_skipped";
     }
     // Upgrade older sessions that didn't have per-MCQ deadline fields
     if (!s.questionDeadline) {
@@ -657,18 +810,24 @@ function loadQuizzes(btn) {
     username: currentStudent.username || "",
     studentName: currentStudent.studentName,
     studentClass: currentStudent.studentClass
-  }, data => {
+  }, (data, meta) => {
     if (data.status !== "success") {
       list.innerHTML = `<div class="empty-card">${QP.emptyState("Couldn't load quizzes", data.message || "Please try again.", "error")}</div>`;
       QP.hidePreloader();
       return;
     }
     if (Array.isArray(data.attemptedQuizzes)) {
-      data.attemptedQuizzes.forEach(name => markDone(name));
+      if (!meta || !meta.cached) {
+        // Sync local done-list with server so teacher re-attempt resets take effect immediately
+        localStorage.setItem(doneKey(), JSON.stringify(data.attemptedQuizzes));
+      } else {
+        data.attemptedQuizzes.forEach(name => markDone(name));
+      }
     }
     quizzes = data.quizzes || [];
     renderQuizList();
     QP.hidePreloader();
+    handlePendingQuizInvite();
   });
   if (btn) QP.withLoading(btn, () => run);
   return run;
@@ -765,7 +924,20 @@ function shuffle(arr) {
   return a;
 }
 
-async function openStartQuizDialog(quizName) {
+function handlePendingQuizInvite() {
+  let inv = null;
+  try { inv = JSON.parse(sessionStorage.getItem("qp_invite") || "null"); } catch (e) { /* ignore */ }
+  if (!inv || !inv.quiz || !quizzes.length) return;
+  sessionStorage.removeItem("qp_invite");
+  const match = quizzes.find(q => q.quizName.toLowerCase() === inv.quiz.toLowerCase());
+  if (!match) return QP.toast(`Quiz "${inv.quiz}" is not available for ${currentStudent.studentClass} (or was already completed).`, "info", 5000);
+  const st = liveStatus(match);
+  if (st === "Scheduled") return QP.toast(`"${match.quizName}" opens at ${QP.fmtDateTime(match.startsAt)}.`, "info", 5000);
+  if (st === "Expired") return QP.toast(`"${match.quizName}" has already closed.`, "warning", 5000);
+  openStartQuizDialog(match.quizName, inv.code || "");
+}
+
+async function openStartQuizDialog(quizName, prefillCode = "") {
   if (session) {
     if (session.quizName === quizName && (session.status === "in_progress" || session.status === "ready_to_submit")) {
       return showPage("quizEnginePage");
@@ -790,12 +962,15 @@ async function openStartQuizDialog(quizName) {
   const ms = quizDurationMs(meta);
   const perMcqSec = meta.totalQuestions ? Math.max(1, Math.floor((ms / 1000) / meta.totalQuestions)) : 0;
   const limited = ms < Number(meta.totalTimeMinutes) * 60000;
+  const neg = Number(meta.negativeMarks) || 0;
+  const passPct = meta.passingPercent !== undefined ? Number(meta.passingPercent) : 50;
 
   $("startDlgTitle").textContent = `Start “${quizName}”`;
   $("startQuizDetails").innerHTML = `
     <div class="detail-box"><span>MCQs</span><b>${meta.totalQuestions}</b></div>
     <div class="detail-box"><span>Total Time</span><b>${limited ? QP.fmtDuration(ms) : meta.totalTimeMinutes + " min"}</b></div>
     <div class="detail-box"><span>Per MCQ</span><b>${QP.fmtDuration(perMcqSec * 1000)}</b></div>
+    <div class="detail-box"><span>Pass Marks</span><b>${passPct}%${neg > 0 ? ` (−${neg}/wrong)` : ""}</b></div>
   `;
   const warn = $("startLimitedWarn");
   if (limited) {
@@ -805,12 +980,24 @@ async function openStartQuizDialog(quizName) {
     warn.classList.add("hidden");
   }
 
+  const extraRules = [];
+  if (neg > 0) extraRules.push(`<li>Negative marking: <b>−${neg} mark${neg === 1 ? "" : "s"}</b> per wrong answer (unanswered/skipped = 0).</li>`);
+  if (meta.trackTabSwitches !== false) extraRules.push(`<li>Do not switch tabs or leave the window — tab switches are logged.</li>`);
+  $("startRulesList").innerHTML = `
+    <li>Each MCQ has its own timer plus an overall quiz timer.</li>
+    <li>Solve an MCQ early and its unused seconds are added to the remaining MCQs!</li>
+    <li>Tough question? Click <b>Skip for Later</b> — once you finish the rest, skipped MCQs reopen so you can solve them until the overall timer ends.</li>
+    ${extraRules.join("")}
+    <li>All answers are saved on your device and submitted together when you finish.</li>
+  `;
+
   const needsCode = !!meta.hasCode;
   $("startCodeGroup").classList.toggle("hidden", !needsCode);
-  $("startCodeInput").value = "";
+  $("startCodeInput").value = prefillCode ? String(prefillCode).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10) : "";
   $("startCodeError").style.display = "none";
   startDlg.showModal();
-  if (needsCode) $("startCodeInput").focus();
+  if (needsCode && !$("startCodeInput").value) $("startCodeInput").focus();
+  else $("confirmStartBtn").focus();
 }
 
 $("startQuizForm").addEventListener("submit", async e => {
@@ -862,23 +1049,32 @@ $("startQuizForm").addEventListener("submit", async e => {
     }
 
     const now = QP.now();
-    const shuffled = shuffle(quiz.questions).map(q => ({ question: q.question, options: q.options || [], correct: q.correct }));
-    const firstMs = Math.min(durationMs, Math.max(1000, Math.floor(durationMs / shuffled.length)));
+    const rawQuestions = quiz.shuffleQuestions !== false ? shuffle(quiz.questions) : [...quiz.questions];
+    const prepared = rawQuestions.map(q => ({
+      question: q.question,
+      options: quiz.shuffleOptions !== false ? shuffle(q.options || []) : [...(q.options || [])]
+    }));
+    const firstMs = Math.min(durationMs, Math.max(1000, Math.floor(durationMs / prepared.length)));
 
     session = {
       id: QP.uid(),
       quizName: quiz.quizName,
       marksPerMcq: quiz.marksPerMcq || 1,
-      questions: shuffled,
-      // All MCQ answers collected as an Array in localStorage until final Submit
-      answers: shuffled.map(q => ({
+      negativeMarks: Number(quiz.negativeMarks) || 0,
+      passingPercent: quiz.passingPercent !== undefined ? Number(quiz.passingPercent) : 50,
+      trackTabSwitches: quiz.trackTabSwitches !== false,
+      tabSwitches: 0,
+      questions: prepared,
+      // All MCQ answers collected as an Array in localStorage until final Submit (answer key stays server-only)
+      answers: prepared.map(q => ({
         question: q.question,
         options: q.options,
         selected: null,
         status: "pending",
-        correct: q.correct
+        skippedByUser: false
       })),
       current: 0,
+      phase: "initial",
       startedAt: new Date(now).toISOString(),
       deadline: now + durationMs,
       basePerMcqMs: firstMs,
@@ -895,15 +1091,43 @@ $("startQuizForm").addEventListener("submit", async e => {
   });
 });
 
-/* ================= Dual-Timer Quiz Engine with Rollover ================= */
+/* ================= Dual-Timer Quiz Engine with Skip-for-Later & Rollover ================= */
 let paletteBuiltFor = null;
 let savedTimer = null;
 
+function pendingIndices(fromIdx = 0) {
+  const out = [];
+  if (!session) return out;
+  for (let i = fromIdx; i < session.answers.length; i++) {
+    if (session.answers[i].status === "pending") out.push(i);
+  }
+  return out;
+}
+
+function skippedIndices() {
+  const out = [];
+  if (!session) return out;
+  for (let i = 0; i < session.answers.length; i++) {
+    if (session.answers[i].status === "skipped") out.push(i);
+  }
+  return out;
+}
+
+function currentPoolCount() {
+  if (!session) return 1;
+  if (session.phase === "review_skipped") {
+    return Math.max(1, skippedIndices().length);
+  }
+  const pend = pendingIndices(0).length;
+  const userSkipped = session.answers.filter(a => a.status === "skipped" && a.skippedByUser).length;
+  return Math.max(1, pend + userSkipped);
+}
+
 function activateQuestion(index, nowMs, bonusAddedPerMcqMs = 0) {
-  const remainingCount = session.questions.length - index;
+  const poolCount = currentPoolCount();
   const remainingOverall = Math.max(0, session.deadline - nowMs);
-  const allocMs = remainingCount > 0
-    ? Math.min(remainingOverall, Math.max(1000, Math.floor(remainingOverall / remainingCount)))
+  const allocMs = remainingOverall > 0
+    ? Math.min(remainingOverall, Math.max(1000, Math.floor(remainingOverall / poolCount)))
     : 0;
   session.current = index;
   session.questionStartedAt = nowMs;
@@ -919,84 +1143,180 @@ function catchUpExpiredQuestions() {
   const now = QP.now();
   if (session.deadline <= now) {
     session.answers.forEach(a => {
-      if (a.status === "pending") {
-        if (a.selected && a.selected !== "Not Solved") a.status = "answered";
-        else { a.selected = "Not Solved"; a.status = "skipped"; }
+      if (a.status === "pending" || a.status === "skipped") {
+        if (a.selected && a.selected !== "Not Solved") {
+          a.status = "answered";
+          a.skippedByUser = false;
+        } else {
+          a.selected = "Not Solved";
+          a.status = "skipped";
+        }
       }
     });
     session.status = "pending_submit";
     saveSession();
     return;
   }
-  while (session.status === "in_progress" && session.questionDeadline <= now) {
+
+  let guard = 0;
+  while (session.status === "in_progress" && session.questionDeadline <= now && ++guard < 600) {
+    const t = session.questionDeadline;
+    if (t >= session.deadline) break;
     const i = session.current;
     const entry = session.answers[i];
     if (entry.selected && entry.selected !== "Not Solved") {
       entry.status = "answered";
+      entry.skippedByUser = false;
     } else {
       entry.selected = "Not Solved";
       entry.status = "skipped";
     }
-    const nextIdx = i + 1;
-    if (nextIdx < session.questions.length) {
-      activateQuestion(nextIdx, session.questionDeadline, 0);
+
+    const pend = pendingIndices(0);
+    if (pend.length > 0) {
+      session.phase = "initial";
+      const nextIdx = pend.find(idx => idx > i) ?? pend[0];
+      activateQuestion(nextIdx, t, 0);
     } else {
-      session.status = "ready_to_submit";
-      saveSession();
-      break;
+      const skips = skippedIndices();
+      if (skips.length > 0 && t < session.deadline) {
+        session.phase = "review_skipped";
+        const nextSkip = skips.find(idx => idx > i) ?? skips[0];
+        activateQuestion(nextSkip, t, 0);
+      } else {
+        session.status = "ready_to_submit";
+        saveSession();
+        break;
+      }
     }
   }
 }
 
-function advanceCurrentQuestion(timedOut = false) {
+function advanceCurrentQuestion(timedOut = false, forceFinishReview = false) {
   if (!session || session.status !== "in_progress") return;
   const now = QP.now();
+  const n = session.questions.length;
   const i = session.current;
   const entry = session.answers[i];
+  const hasChoice = Boolean(entry.selected && entry.selected !== "Not Solved");
 
-  if (timedOut) {
-    if (entry.selected && entry.selected !== "Not Solved") {
-      entry.status = "answered";
-    } else {
-      entry.selected = "Not Solved";
-      entry.status = "skipped";
-      QP.toast(`Time's up for Question ${i + 1} — marked as Skipped.`, "warning", 2800);
-    }
-  } else {
-    if (entry.selected && entry.selected !== "Not Solved") {
-      entry.status = "answered";
-    } else {
-      entry.selected = "Not Solved";
-      entry.status = "skipped";
-    }
+  if (hasChoice) {
+    entry.status = "answered";
+    entry.skippedByUser = false;
+  } else if (entry.status !== "answered") {
+    entry.selected = "Not Solved";
+    entry.status = "skipped";
+    if (!timedOut && !forceFinishReview) entry.skippedByUser = true;
   }
 
-  const savedMs = timedOut ? 0 : Math.max(0, session.questionDeadline - now);
-  const nextIdx = i + 1;
+  if (forceFinishReview) {
+    session.status = "ready_to_submit";
+    saveSession();
+    renderEngine(true);
+    return;
+  }
 
-  if (nextIdx < session.questions.length) {
-    const remainingNext = session.questions.length - nextIdx;
-    const bonusPerNext = Math.floor(savedMs / remainingNext);
+  const savedMs = (!timedOut && hasChoice) ? Math.max(0, session.questionDeadline - now) : 0;
+  const pend = pendingIndices(0);
+
+  if (pend.length > 0) {
+    session.phase = "initial";
+    const nextIdx = pend.find(idx => idx > i) ?? pend[0];
+    const poolAfter = pend.length + session.answers.filter(a => a.status === "skipped" && a.skippedByUser).length;
+    const bonusPerNext = poolAfter > 0 ? Math.floor(savedMs / poolAfter) : 0;
     activateQuestion(nextIdx, now, bonusPerNext);
-    if (!timedOut && savedMs >= 2000 && bonusPerNext >= 1000) {
-      QP.toast(`+${Math.round(savedMs / 1000)}s saved! Added +${Math.round(bonusPerNext / 1000)}s to each of the next ${remainingNext} MCQ${remainingNext === 1 ? "" : "s"}.`, "success", 2800);
+
+    if (timedOut && !hasChoice) {
+      QP.toast(`Time's up for Question ${i + 1} — marked as Skipped (you can solve it after Question ${n}).`, "warning", 3200);
+    } else if (!timedOut && !hasChoice) {
+      QP.toast(`Question ${i + 1} skipped for later — it will reopen after Question ${n}.`, "info", 2800);
+    } else if (savedMs >= 2000 && bonusPerNext >= 1000) {
+      QP.toast(`+${Math.round(savedMs / 1000)}s saved! Added +${Math.round(bonusPerNext / 1000)}s across your ${poolAfter} remaining MCQ${poolAfter === 1 ? "" : "s"}.`, "success", 2800);
     }
     renderQuestion();
     tick();
+    return;
+  }
+
+  const skips = skippedIndices();
+  if (skips.length > 0 && session.deadline > now + 500) {
+    const enteringReview = session.phase !== "review_skipped";
+    session.phase = "review_skipped";
+    const nextSkip = enteringReview ? skips[0] : (skips.find(idx => idx > i) ?? skips[0]);
+    const bonusPerNext = Math.floor(savedMs / skips.length);
+    activateQuestion(nextSkip, now, bonusPerNext);
+
+    if (enteringReview) {
+      QP.toast(`Now reviewing ${skips.length} skipped MCQ${skips.length === 1 ? "" : "s"}! Solve them before overall time ends.`, "info", 3800);
+      renderEngine();
+    } else {
+      if (timedOut && !hasChoice && skips.length > 1) {
+        QP.toast(`Time's up on Question ${i + 1} — switched to Question ${nextSkip + 1}.`, "warning", 2600);
+      } else if (savedMs >= 2000 && bonusPerNext >= 1000) {
+        QP.toast(`+${Math.round(savedMs / 1000)}s saved! Added +${Math.round(bonusPerNext / 1000)}s to your remaining skipped MCQ${skips.length === 1 ? "" : "s"}.`, "success", 2600);
+      }
+      renderQuestion();
+      tick();
+    }
+    return;
+  }
+
+  session.status = "ready_to_submit";
+  saveSession();
+  renderEngine(true);
+}
+
+function jumpToSkipped(targetIdx) {
+  if (!session) return;
+  const now = QP.now();
+  if (session.deadline <= now) return;
+  if (session.answers[targetIdx]?.status !== "skipped") return;
+  if (session.phase !== "review_skipped" && session.status !== "ready_to_submit") return;
+  if (session.status === "in_progress" && session.current === targetIdx) return;
+
+  if (session.status === "in_progress") {
+    const curEntry = session.answers[session.current];
+    if (curEntry && curEntry.selected && curEntry.selected !== "Not Solved") {
+      curEntry.status = "answered";
+      curEntry.skippedByUser = false;
+    } else if (curEntry && curEntry.status !== "answered") {
+      curEntry.selected = "Not Solved";
+      curEntry.status = "skipped";
+    }
+  }
+
+  const wasReady = session.status === "ready_to_submit";
+  session.status = "in_progress";
+  session.phase = "review_skipped";
+  activateQuestion(targetIdx, now, 0);
+  renderEngine();
+  if (wasReady) {
+    const firstOpt = $("qOptions").querySelector("button");
+    if (firstOpt) firstOpt.focus();
   } else {
-    session.status = "ready_to_submit";
-    saveSession();
-    renderEngine();
+    $("qText").focus();
   }
 }
 
-function renderEngine() {
+function startSkippedReview() {
   if (!session) return;
-  $("engineQuizName").textContent = session.quizName;
-  if (paletteBuiltFor !== session.id) {
-    $("palette").innerHTML = session.questions.map((_, i) => `<button type="button" disabled aria-label="Question ${i + 1}">${i + 1}</button>`).join("");
+  const skips = skippedIndices();
+  if (!skips.length || session.deadline <= QP.now()) return;
+  jumpToSkipped(skips[0]);
+}
+
+function ensurePalette() {
+  if (!session) return;
+  if (paletteBuiltFor !== session.id || $("palette").children.length !== session.questions.length) {
+    $("palette").innerHTML = session.questions.map((_, i) => `<button type="button" data-qidx="${i}" disabled>${i + 1}</button>`).join("");
     paletteBuiltFor = session.id;
   }
+}
+
+function renderEngine(focusReadyAction = false) {
+  if (!session) return;
+  $("engineQuizName").textContent = session.quizName;
+  ensurePalette();
 
   const isReady = session.status === "ready_to_submit";
   $("questionStage").classList.toggle("hidden", isReady);
@@ -1004,12 +1324,32 @@ function renderEngine() {
   $("mcqTimerBox").classList.toggle("hidden", isReady);
 
   if (isReady) {
-    const answered = session.answers.filter(a => a.status === "answered").length;
-    const skipped = session.answers.length - answered;
+    const answered = answeredCount();
+    const skips = skippedIndices();
+    const skipped = skips.length;
+    const hasTimeForSkipped = skipped > 0 && session.deadline > QP.now() + 1000;
+
     $("readyTotal").textContent = session.answers.length;
     $("readyAnswered").textContent = answered;
     $("readySkipped").textContent = skipped;
+
+    $("readyHeading").textContent = skipped > 0 ? "Ready to Submit — or Solve Skipped MCQs" : "All MCQs Completed!";
+    $("readySub").textContent = hasTimeForSkipped
+      ? `You answered ${answered} of ${session.answers.length} MCQs and still have ${skipped} skipped MCQ${skipped === 1 ? "" : "s"}. You can go back and solve them until the overall timer ends, or submit now.`
+      : "All your answers have been collected on this device. Click the button below to submit everything at once and see your result.";
+    $("readyIconWrap").style.background = hasTimeForSkipped ? "var(--warning-50)" : "var(--success-50)";
+    $("readyIconWrap").style.color = hasTimeForSkipped ? "var(--warning)" : "var(--success)";
+    $("readyIconSvg").innerHTML = `<use href="#i-${hasTimeForSkipped ? "clock" : "check"}"/>`;
+
+    $("solveSkippedBtn").classList.toggle("hidden", !hasTimeForSkipped);
+    if (hasTimeForSkipped) {
+      $("solveSkippedBtnLabel").textContent = `Solve Skipped MCQs (${skipped} left)`;
+    }
     updateProgress();
+    if (focusReadyAction) {
+      const targetBtn = hasTimeForSkipped ? $("solveSkippedBtn") : $("finalSubmitBtn");
+      targetBtn.focus();
+    }
   } else {
     renderQuestion();
   }
@@ -1028,6 +1368,19 @@ function answeredCount() {
 function renderQuestion() {
   const i = session.current, q = session.questions[i], n = session.questions.length;
   const chosen = getSelected(i);
+  const inReview = session.phase === "review_skipped";
+  const skips = skippedIndices();
+  const pend = pendingIndices(0);
+
+  $("skippedRoundBanner").classList.toggle("hidden", !inReview);
+  if (inReview) {
+    const posInSkipped = Math.max(1, skips.indexOf(i) + 1);
+    $("skippedRoundText").textContent = skips.length > 1
+      ? `Solving Skipped MCQs (${posInSkipped} of ${skips.length}) — click any amber number in Progress to jump`
+      : `Final Skipped MCQ — you have all remaining overall time to solve this question`;
+    $("skippedRoundBadge").textContent = `${skips.length} skipped left`;
+  }
+
   $("qNumber").textContent = `Question ${i + 1} of ${n}`;
   $("qText").textContent = q.question;
   $("qOptions").innerHTML = q.options.map((opt, k) => `
@@ -1045,42 +1398,104 @@ function renderQuestion() {
     $("bonusPill").classList.add("hidden");
   }
 
-  const isLast = i === n - 1;
-  $("nextBtn").classList.toggle("hidden", isLast);
-  $("finishBtn").classList.toggle("hidden", !isLast);
-  $("skipBtn").classList.toggle("hidden", chosen !== null);
+  const activeEl = document.activeElement;
+  if (!inReview) {
+    const isLastPending = pend.length <= 1 && session.answers[i].status === "pending";
+    $("leaveSkippedBtn").classList.add("hidden");
+    $("skipBtnLabel").textContent = isLastPending && skips.length > 0 ? "Skip & Review Skipped" : "Skip for Later";
+    $("skipBtn").classList.toggle("hidden", chosen !== null);
+    $("nextBtnLabel").textContent = "Save & Next";
+    $("nextBtn").classList.toggle("hidden", isLastPending);
+    $("nextBtn").disabled = chosen === null;
+    $("finishBtnLabel").textContent = skips.length > 0 ? `Save & Solve Skipped (${skips.length})` : "Save & Finish";
+    $("finishBtn").classList.toggle("hidden", !isLastPending);
+    $("finishBtn").disabled = chosen === null;
+    $("kbdHint").innerHTML = `Hard MCQ? Click <b>Skip for Later</b> to return to it after Question ${n}. Press <kbd>A</kbd>–<kbd>D</kbd> to choose, <kbd>Enter</kbd> to save &amp; continue.`;
+  } else {
+    const isOnlySkipped = skips.length <= 1;
+    $("leaveSkippedBtn").classList.remove("hidden");
+    $("skipBtnLabel").textContent = "Next Skipped";
+    $("skipBtn").classList.toggle("hidden", chosen !== null || isOnlySkipped);
+    $("nextBtnLabel").textContent = "Save & Next Skipped";
+    $("nextBtn").classList.toggle("hidden", isOnlySkipped);
+    $("nextBtn").disabled = chosen === null;
+    $("finishBtnLabel").textContent = "Save & Finish All";
+    $("finishBtn").classList.toggle("hidden", !isOnlySkipped);
+    $("finishBtn").disabled = chosen === null;
+    $("kbdHint").innerHTML = skips.length > 1
+      ? `Click any amber number in <b>Progress</b> to pick which skipped MCQ to solve first, or press <kbd>A</kbd>–<kbd>D</kbd> then <kbd>Enter</kbd>.`
+      : `This is your last skipped MCQ — solve it anytime before <b>Overall Time</b> ends, or click <b>Review Summary</b> to submit.`;
+  }
+
   $("clearBtn").disabled = chosen === null;
+
+  // Preserve logical keyboard focus if the previously focused button became hidden or disabled
+  if (activeEl && (activeEl === $("skipBtn") || activeEl === $("nextBtn") || activeEl === $("finishBtn")) && (activeEl.classList.contains("hidden") || activeEl.disabled)) {
+    const fallback = [$("nextBtn"), $("finishBtn"), $("skipBtn"), $("leaveSkippedBtn")].find(b => !b.classList.contains("hidden") && !b.disabled);
+    if (fallback) fallback.focus();
+  }
+
   updateProgress();
 }
 
 function updateProgress() {
+  ensurePalette();
   const n = session.questions.length;
-  const doneCount = session.answers.filter(a => a.status !== "pending").length;
   const aCount = answeredCount();
-  const pct = Math.round((doneCount / n) * 100);
+  const skips = skippedIndices();
+  const pendCount = pendingIndices(0).length;
+  const pct = Math.round((aCount / n) * 100);
+  const canJumpSkipped = (session.phase === "review_skipped" || session.status === "ready_to_submit") && session.deadline > QP.now();
+
   $("progressBar").style.width = pct + "%";
-  $("progressText").textContent = `${aCount} answered • ${session.answers.filter(a => a.status === "skipped").length} skipped`;
-  $("progressPct").textContent = `${doneCount}/${n}`;
+  $("progressText").textContent = `${aCount} answered • ${skips.length} skipped${pendCount ? ` • ${pendCount} upcoming` : ""}`;
+  $("progressPct").textContent = `${aCount}/${n}`;
   $("paletteCount").textContent = `${aCount}/${n}`;
 
   const buttons = $("palette").children;
   for (let i = 0; i < buttons.length; i++) {
+    const btn = buttons[i];
     const st = session.answers[i].status;
     const isCur = session.status === "in_progress" && i === session.current;
-    buttons[i].classList.toggle("answered", st === "answered" || (isCur && getSelected(i) !== null));
-    buttons[i].classList.toggle("skipped", st === "skipped");
-    buttons[i].classList.toggle("current", isCur);
-    buttons[i].classList.toggle("locked", !isCur && st === "pending");
+    const hasDraft = getSelected(i) !== null;
+    const jumpable = canJumpSkipped && st === "skipped" && !isCur;
+
+    btn.classList.toggle("answered", st === "answered" || (isCur && hasDraft));
+    btn.classList.toggle("skipped", st === "skipped" && !(isCur && hasDraft));
+    btn.classList.toggle("has-draft", st === "skipped" && hasDraft && !isCur);
+    btn.classList.toggle("current", isCur);
+    btn.classList.toggle("jumpable", jumpable);
+    btn.classList.toggle("locked", !isCur && !jumpable && st === "pending");
+    btn.disabled = !jumpable;
+
+    if (isCur) btn.setAttribute("aria-current", "step");
+    else btn.removeAttribute("aria-current");
+
+    let stateDesc = "Upcoming";
+    if (isCur) stateDesc = st === "skipped" ? "Current skipped question" : "Current question";
+    else if (st === "answered") stateDesc = "Answered";
+    else if (st === "skipped") stateDesc = jumpable ? "Skipped — click to solve" : `Skipped — reopens after Question ${n}`;
+    btn.setAttribute("aria-label", `${i + 1} — Question ${i + 1} (${stateDesc})`);
   }
 
-  const remCount = Math.max(0, n - (session.current + 1));
   if (session.status === "ready_to_submit") {
-    $("rolloverHint").textContent = "All questions finished — click Submit to send your answers.";
-  } else if (remCount > 0) {
-    const estNext = Math.max(1000, Math.floor(Math.max(0, session.deadline - session.questionDeadline) / remCount));
-    $("rolloverHint").textContent = `${remCount} upcoming MCQ${remCount === 1 ? "" : "s"} (~${QP.fmtDuration(estNext)} each, plus any time you save now).`;
+    $("rolloverHint").textContent = skips.length > 0 && canJumpSkipped
+      ? `Click any amber Skipped number above (or Solve Skipped MCQs) before time ends.`
+      : "All questions finished — click Submit to send your answers.";
+  } else if (session.phase === "review_skipped") {
+    $("rolloverHint").textContent = skips.length > 1
+      ? `${skips.length} skipped MCQs left — click any amber tile above to jump directly.`
+      : "Last skipped MCQ! All remaining overall time is available for this question.";
+  } else if (pendCount > 1) {
+    const poolRest = Math.max(1, currentPoolCount() - 1);
+    const estNext = Math.max(1000, Math.floor(Math.max(0, session.deadline - session.questionDeadline) / poolRest));
+    $("rolloverHint").textContent = skips.length > 0
+      ? `${pendCount - 1} upcoming + ${skips.length} skipped for later (~${QP.fmtDuration(estNext)} each).`
+      : `${pendCount - 1} upcoming MCQ${pendCount - 1 === 1 ? "" : "s"} (~${QP.fmtDuration(estNext)} each, plus any time you save now).`;
   } else {
-    $("rolloverHint").textContent = "Final question! You have all remaining overall time for this MCQ.";
+    $("rolloverHint").textContent = skips.length > 0
+      ? `Last initial MCQ! Next, your ${skips.length} skipped MCQ${skips.length === 1 ? "" : "s"} will reopen automatically.`
+      : "Final question! You have all remaining overall time for this MCQ.";
   }
 }
 
@@ -1105,9 +1520,13 @@ $("qOptions").addEventListener("click", e => {
   const b = e.target.closest("[data-opt]");
   if (b) selectOption(Number(b.dataset.opt));
 });
+$("palette").addEventListener("click", e => {
+  const b = e.target.closest("button[data-qidx]");
+  if (b && !b.disabled) jumpToSkipped(Number(b.dataset.qidx));
+});
 $("clearBtn").addEventListener("click", () => {
   if (!session || session.status !== "in_progress") return;
-  session.answers[session.current].selected = null;
+  session.answers[session.current].selected = session.answers[session.current].status === "skipped" ? "Not Solved" : null;
   saveSession();
   renderQuestion();
 });
@@ -1116,8 +1535,16 @@ $("skipBtn").addEventListener("click", () => {
   session.answers[session.current].selected = null;
   advanceCurrentQuestion(false);
 });
-$("nextBtn").addEventListener("click", () => advanceCurrentQuestion(false));
-$("finishBtn").addEventListener("click", () => advanceCurrentQuestion(false));
+$("leaveSkippedBtn").addEventListener("click", () => advanceCurrentQuestion(false, true));
+$("solveSkippedBtn").addEventListener("click", startSkippedReview);
+$("nextBtn").addEventListener("click", () => {
+  if (!session || session.status !== "in_progress" || getSelected(session.current) === null) return;
+  advanceCurrentQuestion(false);
+});
+$("finishBtn").addEventListener("click", () => {
+  if (!session || session.status !== "in_progress" || getSelected(session.current) === null) return;
+  advanceCurrentQuestion(false);
+});
 $("finalSubmitBtn").addEventListener("click", () => submitSession(false));
 $("submitQuizBtn").addEventListener("click", confirmEarlySubmit);
 
@@ -1125,29 +1552,39 @@ document.addEventListener("keydown", e => {
   if (!session || session.status !== "in_progress" || $("quizEnginePage").classList.contains("hidden") || document.querySelector("dialog[open]")) return;
   if (e.ctrlKey || e.metaKey || e.altKey || e.target.matches("input, textarea, select")) return;
   const k = e.key.toUpperCase();
-  if (k === "ENTER" || k === "ARROWRIGHT") { e.preventDefault(); advanceCurrentQuestion(false); }
+  if (k === "ENTER") {
+    if (e.target.matches("button") && e.target.id && e.target.id !== "nextBtn" && e.target.id !== "finishBtn" && !e.target.hasAttribute("data-opt")) return;
+    e.preventDefault();
+    if (getSelected(session.current) !== null) advanceCurrentQuestion(false);
+    else QP.toast("Choose an option first, or click Skip for Later.", "info", 2200);
+  }
   else if (/^[1-6]$/.test(k)) selectOption(Number(k) - 1);
   else if (/^[A-F]$/.test(k)) selectOption(k.charCodeAt(0) - 65);
 });
 
 async function confirmEarlySubmit() {
   if (!session) return;
-  if (session.status === "ready_to_submit") return submitSession(false);
+  if (session.status === "ready_to_submit" && skippedIndices().length === 0) return submitSession(false);
   const n = session.questions.length;
   const a = answeredCount();
-  const remaining = n - (session.current + 1);
+  const pend = pendingIndices(0).length;
+  const skips = skippedIndices().length;
+  const timeLeft = Math.max(0, session.deadline - QP.now());
+  const notes = [];
+  if (pend > 0) notes.push(`<b>${pend}</b> upcoming MCQ${pend === 1 ? "" : "s"}`);
+  if (skips > 0) notes.push(`<b>${skips}</b> skipped MCQ${skips === 1 ? "" : "s"}`);
   const ok = await QP.confirmDialog({
     title: "Submit your quiz now?",
     iconName: "send",
     tone: "success",
     confirmText: "Submit all answers",
-    cancelText: "Keep working",
+    cancelText: notes.length && timeLeft > 2000 ? "Keep solving" : "Keep working",
     html: `
       <div class="details-grid">
         <div class="detail-box"><span>Answered</span><b class="text-success">${a}</b></div>
-        <div class="detail-box"><span>Skipped / Left</span><b class="text-warning">${n - a}</b></div>
+        <div class="detail-box"><span>Unanswered</span><b class="text-warning">${n - a}</b></div>
       </div>
-      <p class="muted" style="font-size:.9rem">${remaining > 0 ? `You still have <b>${remaining}</b> upcoming MCQ${remaining === 1 ? "" : "s"} that will be marked as <b>Not Solved</b>. ` : ""}All collected answers will be submitted in one request.</p>`
+      <p class="muted" style="font-size:.9rem">${notes.length ? `You still have ${notes.join(" and ")}${timeLeft > 2000 ? ` with <b>${esc(QP.fmtClock(timeLeft))}</b> left` : ""} that will be graded as <b>Not Solved</b>. ` : ""}All collected answers will be submitted in one request.</p>`
   });
   if (ok) submitSession(false);
 }
@@ -1171,6 +1608,9 @@ async function submitSession(auto) {
   saveSession();
   showSubmitting(true);
 
+  const startMs = new Date(session.startedAt).getTime();
+  const timeTakenSec = !isNaN(startMs) ? Math.max(1, Math.round((QP.now() - startMs) / 1000)) : 0;
+
   const payload = {
     action: "submit_quiz",
     submissionId: session.id,
@@ -1179,11 +1619,12 @@ async function submitSession(auto) {
     studentName: currentStudent.studentName,
     studentClass: currentStudent.studentClass,
     startedAt: session.startedAt,
+    timeTakenSec,
+    tabSwitches: session.tabSwitches || 0,
     answers: session.answers.map(a => ({
       question: a.question,
       options: a.options || [],
-      selected: a.selected && a.selected !== "Not Solved" ? a.selected : "Not Solved",
-      correct: a.correct
+      selected: a.selected && a.selected !== "Not Solved" ? a.selected : "Not Solved"
     }))
   };
   const data = await QP.post(payload, 2);
@@ -1243,6 +1684,22 @@ pdfDlg.addEventListener("close", () => { pdfDlg.returnValue = ""; });
 function openPdfModal(result) {
   if (!result || !(result.details || []).length) return QP.toast("No MCQs found to export.", "warning");
   pdfTargetResult = result;
+  const locked = !!result.answersLockedUntilExpiry;
+  $("pdfModeWithAnswers").disabled = locked;
+  $("pdfWithAnswersOption").classList.toggle("locked", locked);
+  $("pdfWithAnswersOption").style.opacity = locked ? "0.55" : "1";
+  $("pdfWithAnswersDesc").textContent = locked
+    ? `Unlocks once the quiz window closes${result.answersUnlockAt ? " (" + QP.fmtDateTime(result.answersUnlockAt) + ")" : ""}.`
+    : "Includes questions, options, your answers, correct answers, explanations & score.";
+  if (locked) {
+    $("pdfModeQuestionsOnly").checked = true;
+    $("pdfWithAnswersOption").classList.remove("selected");
+    $("pdfQuestionsOnlyOption").classList.add("selected");
+  } else {
+    $("pdfModeWithAnswers").checked = true;
+    $("pdfWithAnswersOption").classList.add("selected");
+    $("pdfQuestionsOnlyOption").classList.remove("selected");
+  }
   $("pdfQuizSubtitle").innerHTML = `Export <strong>${esc(result.quizName)}</strong> (${result.details.length} MCQs) for printing.`;
   pdfDlg.showModal();
 }
@@ -1250,13 +1707,14 @@ function openPdfModal(result) {
 async function runPdfExport(printOnly, btn) {
   if (!pdfTargetResult) return;
   const mode = $("pdfModeList").querySelector("input[name='pdfMode']:checked")?.value || "with_answers";
-  const includeAnswers = mode === "with_answers";
+  const includeAnswers = mode === "with_answers" && !pdfTargetResult.answersLockedUntilExpiry;
   await QP.withLoading(btn, async () => {
     await QP.downloadQuizPdf({
       quizName: pdfTargetResult.quizName,
       studentName: pdfTargetResult.studentName || currentStudent?.studentName || "",
       studentClass: pdfTargetResult.studentClass || currentStudent?.studentClass || "",
       date: pdfTargetResult.date,
+      timeTaken: QP.fmtTimeTaken(pdfTargetResult),
       obtainedMarks: pdfTargetResult.obtainedMarks,
       totalMarks: pdfTargetResult.totalMarks,
       items: pdfTargetResult.details || [],
@@ -1277,20 +1735,33 @@ function displayResult(result) {
   lastResult = result;
   const details = result.details || [];
   const correct = result.correct ?? details.filter(d => d.status === "Correct").length;
-  const wrong = details.filter(d => d.status === "Wrong").length;
+  const wrong = result.wrong ?? details.filter(d => d.status === "Wrong").length;
   const skipped = result.notAttempted ?? details.filter(d => d.status === "Not Solved").length;
   const pct = result.totalMarks ? Math.round((result.obtainedMarks / result.totalMarks) * 100) : 0;
+  const passed = QP.isAttemptPassed(result);
   const ring = $("scoreRing");
   ring.style.setProperty("--p", pct);
-  ring.style.setProperty("--ring-color", pct >= 80 ? "#059669" : pct >= 50 ? "#4f46e5" : "#dc2626");
+  ring.style.setProperty("--ring-color", passed ? (pct >= 80 ? "#059669" : "#4f46e5") : "#dc2626");
   $("resPct").textContent = pct + "%";
   $("resQuizName").textContent = result.quizName;
-  $("resHeadline").textContent = pct >= 80 ? "Excellent work! 🎉" : pct >= 50 ? "Good job! 👍" : "Keep practicing! 💪";
-  $("resDate").textContent = `Submitted ${QP.fmtDateTime(result.date)}`;
+  $("resPassBadge").innerHTML = QP.resultBadge(passed ? "Passed" : "Failed");
+  $("resHeadline").textContent = pct >= 80 ? "Excellent work! 🎉" : passed ? "Good job — you passed! 👍" : "Keep practicing! 💪";
+  const negInfo = result.negativeMarks > 0 ? ` • −${result.negativeMarks}/wrong` : "";
+  $("resDate").textContent = `Submitted ${QP.fmtDateTime(result.date)}${negInfo}`;
   $("resMarks").textContent = `${result.obtainedMarks} / ${result.totalMarks}`;
   $("resCorrect").textContent = correct;
   $("resWrong").textContent = wrong;
   $("resSkipped").textContent = skipped;
+  $("resTimeTaken").textContent = QP.fmtTimeTaken(result);
+
+  const locked = !!result.answersLockedUntilExpiry;
+  $("answersLockedBanner").classList.toggle("hidden", !locked);
+  if (locked) {
+    $("answersLockedText").textContent = result.answersUnlockAt
+      ? `Your teacher set the answer key to unlock after the quiz closes (${QP.fmtDateTime(result.answersUnlockAt)}). Check back in My Results once the quiz ends!`
+      : "Correct answers and explanations will unlock once your teacher closes this quiz.";
+  }
+
   setResultFilter("all");
   showPage("resultPage");
 }
@@ -1298,6 +1769,7 @@ function displayResult(result) {
 function setResultFilter(f) {
   resultFilter = f;
   document.querySelectorAll("#resultFilter [data-filter]").forEach(b => b.classList.toggle("active", b.dataset.filter === f));
+  const locked = !!lastResult?.answersLockedUntilExpiry;
   const items = (lastResult.details || []).map((d, i) => ({ ...d, n: i + 1 })).filter(d => f === "all" || d.status === f);
   $("answerList").innerHTML = items.length ? items.map(d => {
     const cls = d.status === "Correct" ? "correct" : d.status === "Wrong" ? "wrong" : "skipped";
@@ -1305,7 +1777,8 @@ function setResultFilter(f) {
       <div class="answer-item ${cls}">
         <div class="ai-q"><span>${d.n}. ${esc(d.question)}</span>${QP.resultBadge(d.status === "Not Solved" ? "Skipped" : d.status)}</div>
         <div class="ai-row"><b>Your answer:</b> <span class="${cls === "wrong" ? "text-danger" : ""}">${esc(d.selected)}</span></div>
-        <div class="ai-row"><b>Correct answer:</b> <span class="text-success">${esc(d.correct)}</span></div>
+        ${locked ? "" : `<div class="ai-row"><b>Correct answer:</b> <span class="text-success">${esc(d.correct)}</span></div>`}
+        ${!locked && d.explanation ? `<div class="ai-exp"><strong>Explanation:</strong> ${esc(d.explanation)}</div>` : ""}
       </div>`;
   }).join("") : QP.emptyState("Nothing here", "No questions match this filter.", "check");
 }
@@ -1318,10 +1791,10 @@ $("resultFilter").addEventListener("click", e => {
 let myAttempts = [];
 function loadMyQuizzes(btn) {
   const body = $("myQuizzesBody");
-  if (!myAttempts.length) body.innerHTML = QP.skeletonRows(7, 3);
+  if (!myAttempts.length) body.innerHTML = QP.skeletonRows(8, 3);
   const run = QP.cachedGet({ action: "get_student_attempts", username: currentStudent.username || "", studentName: currentStudent.studentName }, data => {
     if (data.status !== "success") {
-      body.innerHTML = `<tr><td colspan="7">${QP.emptyState("Couldn't load results", data.message || "Please try again.", "error")}</td></tr>`;
+      body.innerHTML = `<tr><td colspan="8">${QP.emptyState("Couldn't load results", data.message || "Please try again.", "error")}</td></tr>`;
       return;
     }
     myAttempts = data.attempts || [];
@@ -1332,13 +1805,19 @@ function loadMyQuizzes(btn) {
     $("histBest").textContent = (pcts.length ? Math.max(...pcts) : 0) + "%";
     $("histAvg").textContent = (pcts.length ? Math.round(pcts.reduce((s, v) => s + v, 0) / pcts.length) : 0) + "%";
     if (!myAttempts.length) {
-      body.innerHTML = `<tr><td colspan="7">${QP.emptyState("No attempts yet", "Quizzes you complete will show up here.", "history")}</td></tr>`;
+      body.innerHTML = `<tr><td colspan="8">${QP.emptyState("No attempts yet", "Quizzes you complete will show up here.", "history")}</td></tr>`;
       return;
     }
-    body.innerHTML = myAttempts.map((a, i) => `
+    body.innerHTML = myAttempts.map((a, i) => {
+      const passed = QP.isAttemptPassed(a);
+      return `
       <tr>
-        <td data-label="Quiz" class="cell-strong">${esc(a.quizName)}</td>
+        <td data-label="Quiz">
+          <div class="cell-strong">${esc(a.quizName)}</div>
+          <div class="mt-1">${QP.resultBadge(passed ? "Passed" : "Failed")}</div>
+        </td>
         <td data-label="Date" class="cell-muted">${esc(QP.fmtDateTime(a.date))}</td>
+        <td data-label="Time" class="num cell-muted">${esc(QP.fmtTimeTaken(a))}</td>
         <td data-label="Attempted" class="num">${a.attempted}</td>
         <td data-label="Skipped" class="num">${a.notAttempted}</td>
         <td data-label="Marks" class="num"><b>${a.obtainedMarks}</b> / ${a.totalMarks}</td>
@@ -1349,7 +1828,8 @@ function loadMyQuizzes(btn) {
             <button type="button" class="btn btn-outline btn-sm" data-pdf="${i}" title="Download MCQs PDF">${icon("printer", "ic-sm")} PDF</button>
           </div>
         </td>
-      </tr>`).join("");
+      </tr>`;
+    }).join("");
   });
   if (btn) QP.withLoading(btn, () => run);
 }
@@ -1385,9 +1865,14 @@ function tick() {
 
     if (overallLeft <= 0 && !submitting) {
       session.answers.forEach(a => {
-        if (a.status === "pending") {
-          if (a.selected && a.selected !== "Not Solved") a.status = "answered";
-          else { a.selected = "Not Solved"; a.status = "skipped"; }
+        if (a.status === "pending" || a.status === "skipped") {
+          if (a.selected && a.selected !== "Not Solved") {
+            a.status = "answered";
+            a.skippedByUser = false;
+          } else {
+            a.selected = "Not Solved";
+            a.status = "skipped";
+          }
         }
       });
       QP.toast("Overall quiz time is up! Submitting all your answers…", "warning");
@@ -1420,6 +1905,7 @@ setInterval(tick, 500);
 
 /* ================= Boot ================= */
 QP.initShell();
+updateConnectionBadge(false);
 if (currentStudent) initStudentSession(); else showAuth();
 </script>
 </body>
