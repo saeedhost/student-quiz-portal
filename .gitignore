@@ -1,0 +1,10 @@
+# Google Apps Script backend (contains admin password)
+Code.gs
+code.gs
+
+# OS & editor files
+.DS_Store
+Thumbs.db
+
+#Sample files
+sample-mcqs.json
