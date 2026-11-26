@@ -8,3 +8,9 @@ Thumbs.db
 
 #Sample files
 sample-mcqs.json
+
+#gitignore
+.gitignore
+
+#readme
+README.md

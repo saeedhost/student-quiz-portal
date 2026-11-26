@@ -309,8 +309,17 @@ textarea { min-height: 120px; resize: vertical; font-family: ui-monospace, "Casc
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
 input::placeholder, textarea::placeholder { color: #94a3b8; }
 .input-icon { position: relative; }
-.input-icon .ic { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+.input-icon > .ic { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
 .input-icon input, .input-icon select { padding-left: 2.5rem; }
+.input-icon:has(.toggle-pass-btn) input { padding-right: 2.85rem; }
+.toggle-pass-btn {
+  position: absolute; right: .35rem; top: 50%; transform: translateY(-50%);
+  width: 36px; height: 36px; display: grid; place-items: center;
+  background: transparent; border: 0; border-radius: 8px; color: var(--muted);
+  transition: background .15s, color .15s;
+}
+.toggle-pass-btn:hover { background: var(--surface-2); color: var(--text); }
+.toggle-pass-btn .ic { position: static; transform: none; color: inherit; pointer-events: none; }
 
 .expiry-preview {
   display: flex; align-items: center; gap: .85rem; padding: .95rem 1.1rem; border-radius: 12px; flex-wrap: wrap;
